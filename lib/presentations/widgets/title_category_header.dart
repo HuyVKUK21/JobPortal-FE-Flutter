@@ -31,7 +31,7 @@ class TitleCategoryHeader extends StatelessWidget {
             style: TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 14,
-              color: const Color.fromARGB(255, 49, 114, 51),
+              color: const Color(0xFF248BFD),
             ),
           ),
         ),

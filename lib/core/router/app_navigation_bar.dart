@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/presentations/pages/application_screen.dart';
+import 'package:flutter_application_1/presentations/pages/detail_job.dart';
 import 'package:flutter_application_1/presentations/pages/home_page_screen.dart';
 import 'package:flutter_application_1/presentations/pages/lastest_job_screen.dart';
 import 'package:flutter_application_1/presentations/pages/notification_page_screen.dart';
@@ -17,6 +19,9 @@ class AppNavigationBar {
   );
   static final _shellNavigatorSaveJob = GlobalKey<NavigatorState>(
     debugLabel: 'shellSaveJob',
+  );
+  static final _shellNavigatorApplicationJob = GlobalKey<NavigatorState>(
+    debugLabel: 'shellApplicationJob',
   );
 
   static final GoRouter router = GoRouter(
@@ -49,6 +54,16 @@ class AppNavigationBar {
               ),
             ],
           ),
+          StatefulShellBranch(
+            navigatorKey: _shellNavigatorApplicationJob,
+            routes: <RouteBase>[
+              GoRoute(
+                path: '/applicationScreen',
+                name: 'applicationScreen',
+                builder: (context, state) => const ApplicationScreen(),
+              ),
+            ],
+          ),
         ],
       ),
       GoRoute(
@@ -62,6 +77,12 @@ class AppNavigationBar {
         path: '/notication',
         name: 'notication',
         builder: (context, state) => const NotificationPageScreen(),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/jobDetails',
+        name: 'jobDetails',
+        builder: (context, state) => const DetailJob(),
       ),
     ],
   );

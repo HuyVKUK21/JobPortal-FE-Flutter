@@ -45,14 +45,19 @@ class HomePageScreen extends StatelessWidget {
                       titleCategoryHeader: 'Việc làm đề xuất',
                     ),
                     SizedBox(height: 16),
-                    CardItemJob(
-                      titleJob: 'Flutter Developer',
-                      conpanyJob: 'Lutech Digital',
-                      location: 'Toà nhà 18 Lê Lợi',
-                      workLocation: 'TP. Huế & 2 nơi khác',
-                      workingTime: 'Full Time',
-                      workSalary: '40 - 80 triệu /tháng',
-                      logoCompany: 'assets/logo_lutech.png',
+                    InkWell(
+                      onTap: () {
+                        context.pushNamed("jobDetails");
+                      },
+                      child: CardItemJob(
+                        titleJob: 'Flutter Developer',
+                        conpanyJob: 'Lutech Digital',
+                        location: 'Toà nhà 18 Lê Lợi',
+                        workLocation: 'TP. Huế & 2 nơi khác',
+                        workingTime: 'Full Time',
+                        workSalary: '40 - 80 triệu /tháng',
+                        logoCompany: 'assets/logo_lutech.png',
+                      ),
                     ),
                     SizedBox(height: 16),
                     TitleCategoryHeader(

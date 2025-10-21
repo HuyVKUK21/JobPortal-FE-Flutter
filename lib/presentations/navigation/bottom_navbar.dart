@@ -52,7 +52,7 @@ class BottomNavBar extends StatelessWidget {
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 250),
                 curve: Curves.easeInOut,
-                padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                // padding: const EdgeInsets.symmetric(vertical: 4, horizontal:  2 * SizeConfig.blockWidth),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [

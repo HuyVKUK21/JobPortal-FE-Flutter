@@ -15,9 +15,7 @@ class JobCategory extends StatelessWidget {
             Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: const Color.fromARGB(255, 131, 178, 112),
-                ),
+                border: Border.all(color: const Color(0xFF248BFD)),
               ),
               padding: const EdgeInsets.only(
                 top: 4,
@@ -36,7 +34,7 @@ class JobCategory extends StatelessWidget {
                   categories[i],
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: const Color.fromARGB(255, 49, 114, 51),
+                    color: const Color(0xFF248BFD),
                   ),
                 ),
               ),

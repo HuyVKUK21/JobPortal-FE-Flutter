@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/core/utils/app_screen_layout.dart';
-import 'package:flutter_application_1/presentations/pages/home_page_screen.dart';
-import 'package:flutter_application_1/presentations/pages/lastest_job_screen.dart';
-import 'package:flutter_application_1/presentations/pages/saved_job_screen.dart';
+import 'package:flutter_application_1/presentations/pages/application_notification.dart';
 import 'package:flutter_application_1/presentations/pages/general_notification.dart';
 import 'package:flutter_application_1/presentations/widgets/title_header_bar.dart';
 
@@ -43,7 +41,10 @@ class NotificationPageScreen extends StatelessWidget {
                     ),
                     Expanded(
                       child: TabBarView(
-                        children: [GeneralNotification(), LastestJobScreen()],
+                        children: [
+                          GeneralNotification(),
+                          ApplicationNotification(),
+                        ],
                       ),
                     ),
                   ],
