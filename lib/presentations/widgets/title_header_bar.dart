@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+import 'package:go_router/go_router.dart';
 
 class TitleHeaderBar extends StatelessWidget {
   final String titleHeaderBar;
   final IconData iconHeaderLeftBar;
   final IconData iconHeaderRightBar;
+  final VoidCallback? onLeftPressed;
+  final VoidCallback? onRightPressed;
+
   const TitleHeaderBar({
     required this.titleHeaderBar,
     required this.iconHeaderLeftBar,
     required this.iconHeaderRightBar,
+    this.onLeftPressed,
+    this.onRightPressed,
     super.key,
   });
 
@@ -16,14 +21,26 @@ class TitleHeaderBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(iconHeaderLeftBar, color: const Color.fromARGB(255, 17, 67, 18)),
-        SizedBox(width: 12),
+        IconButton(
+          icon: Icon(iconHeaderLeftBar, color: Colors.black87),
+          onPressed: onLeftPressed ?? () {
+            if (iconHeaderLeftBar == Icons.arrow_back) {
+              context.pop();
+            }
+          },
+        ),
         Text(
           titleHeaderBar,
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 22,
+          ),
         ),
-        Spacer(),
-        Icon(iconHeaderRightBar),
+        const Spacer(),
+        IconButton(
+          icon: Icon(iconHeaderRightBar, color: Colors.black87),
+          onPressed: onRightPressed ?? () {},
+        ),
       ],
     );
   }

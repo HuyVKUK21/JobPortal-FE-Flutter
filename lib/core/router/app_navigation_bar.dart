@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/features/auth/presentation/pages/login_page.dart';
+import 'package:flutter_application_1/features/auth/presentation/pages/register_page.dart';
+import 'package:flutter_application_1/features/jobs/presentation/pages/apply_job_page.dart';
+import 'package:flutter_application_1/features/jobs/presentation/pages/home_page.dart';
+import 'package:flutter_application_1/features/jobs/presentation/pages/search_jobs_page.dart';
+import 'package:flutter_application_1/features/profile/presentation/pages/profile_page.dart';
+import 'package:flutter_application_1/features/profile/presentation/pages/profile_placeholder_page.dart';
 import 'package:flutter_application_1/presentations/pages/application_screen.dart';
 import 'package:flutter_application_1/presentations/pages/detail_job.dart';
-import 'package:flutter_application_1/presentations/pages/home_page_screen.dart';
 import 'package:flutter_application_1/presentations/pages/lastest_job_screen.dart';
+import 'package:flutter_application_1/presentations/pages/messages_screen.dart';
 import 'package:flutter_application_1/presentations/pages/notification_page_screen.dart';
 import 'package:flutter_application_1/presentations/pages/saved_job_screen.dart';
 import 'package:flutter_application_1/presentations/wrapper/main_wrapper.dart';
@@ -23,6 +30,12 @@ class AppNavigationBar {
   static final _shellNavigatorApplicationJob = GlobalKey<NavigatorState>(
     debugLabel: 'shellApplicationJob',
   );
+  static final _shellNavigatorMessages = GlobalKey<NavigatorState>(
+    debugLabel: 'shellMessages',
+  );
+  static final _shellNavigatorProfile = GlobalKey<NavigatorState>(
+    debugLabel: 'shellProfile',
+  );
 
   static final GoRouter router = GoRouter(
     initialLocation: initial,
@@ -40,7 +53,7 @@ class AppNavigationBar {
               GoRoute(
                 path: '/home',
                 name: 'home',
-                builder: (context, state) => const HomePageScreen(),
+                builder: (context, state) => const HomePage(),
               ),
             ],
           ),
@@ -64,25 +77,77 @@ class AppNavigationBar {
               ),
             ],
           ),
+          StatefulShellBranch(
+            navigatorKey: _shellNavigatorMessages,
+            routes: <RouteBase>[
+              GoRoute(
+                path: '/messages',
+                name: 'messages',
+                builder: (context, state) => const MessagesScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            navigatorKey: _shellNavigatorProfile,
+            routes: <RouteBase>[
+              GoRoute(
+                path: '/profile',
+                name: 'profile',
+                builder: (context, state) {
+                  // TODO: Check auth state with Riverpod
+                  // Show placeholder when not authenticated
+                  final isAuthenticated = false; // Replace with actual auth check
+                  if (!isAuthenticated) {
+                    return const ProfilePlaceholderPage();
+                  }
+                  return const ProfilePage();
+                },
+              ),
+            ],
+          ),
         ],
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
-        path: '/lastestJob',
-        name: 'lastestJob',
+        path: '/latestJobs',
+        name: 'latestJobs',
         builder: (context, state) => const LastestJobScreen(),
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
-        path: '/notication',
-        name: 'notication',
+        path: '/notifications',
+        name: 'notification',
         builder: (context, state) => const NotificationPageScreen(),
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
-        path: '/jobDetails',
-        name: 'jobDetails',
+        path: '/jobDetail',
+        name: 'jobDetail',
         builder: (context, state) => const DetailJob(),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/login',
+        name: 'login',
+        builder: (context, state) => const LoginPage(),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/register',
+        name: 'register',
+        builder: (context, state) => const RegisterPage(),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/searchJobs',
+        name: 'searchJobs',
+        builder: (context, state) => const SearchJobsPage(),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/applyJob',
+        name: 'applyJob',
+        builder: (context, state) => const ApplyJobPage(),
       ),
     ],
   );

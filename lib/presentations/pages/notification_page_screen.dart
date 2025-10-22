@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/core/constants/app_colors.dart';
+import 'package:flutter_application_1/core/constants/app_dimensions.dart';
 import 'package:flutter_application_1/core/utils/app_screen_layout.dart';
 import 'package:flutter_application_1/presentations/pages/application_notification.dart';
 import 'package:flutter_application_1/presentations/pages/general_notification.dart';
@@ -19,27 +21,42 @@ class NotificationPageScreen extends StatelessWidget {
               iconHeaderLeftBar: Icons.arrow_back,
               iconHeaderRightBar: Icons.more_horiz_rounded,
             ),
-            SizedBox(height: 16),
-            const Expanded(
+            const SizedBox(height: 16),
+            Expanded(
               child: DefaultTabController(
                 length: 2,
                 child: Column(
                   children: [
-                    TabBar(
-                      labelColor: Colors.black,
-                      unselectedLabelColor: Colors.grey,
-                      indicatorColor: Colors.blue,
-                      indicatorWeight: 2.5,
-                      labelStyle: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF5F5F5),
+                        borderRadius: BorderRadius.circular(AppDimensions.radius),
                       ),
-                      tabs: [
-                        Tab(text: 'Chung'),
-                        Tab(text: 'Ứng tuyển'),
-                      ],
+                      child: TabBar(
+                        indicator: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(AppDimensions.radius),
+                        ),
+                        indicatorSize: TabBarIndicatorSize.tab,
+                        dividerColor: Colors.transparent,
+                        labelColor: Colors.white,
+                        unselectedLabelColor: Colors.grey[600],
+                        labelStyle: const TextStyle(
+                          fontSize: AppDimensions.fontL,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        unselectedLabelStyle: const TextStyle(
+                          fontSize: AppDimensions.fontL,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        tabs: const [
+                          Tab(text: 'Chung'),
+                          Tab(text: 'Ứng tuyển'),
+                        ],
+                      ),
                     ),
-                    Expanded(
+                    const SizedBox(height: AppDimensions.space),
+                    const Expanded(
                       child: TabBarView(
                         children: [
                           GeneralNotification(),
