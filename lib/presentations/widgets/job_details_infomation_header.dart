@@ -2,9 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_application_1/core/utils/size_config.dart';
 import 'package:flutter_application_1/core/widgets/build_tag.dart';
+import 'package:flutter_application_1/core/models/job.dart';
 
 class JobDetailInfomationHeader extends StatelessWidget {
-  const JobDetailInfomationHeader({super.key});
+  final Job job;
+  
+  const JobDetailInfomationHeader({super.key, required this.job});
+
+  String _formatDate(String? dateString) {
+    if (dateString == null) return 'N/A';
+    try {
+      final date = DateTime.parse(dateString);
+      return '${date.day}/${date.month}/${date.year}';
+    } catch (e) {
+      return 'N/A';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,24 +48,24 @@ class JobDetailInfomationHeader extends StatelessWidget {
             ),
             SizedBox(height: 6),
             Text(
-              'Flutter Developer',
+              job.title,
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
             ),
             SizedBox(height: 4),
             Text(
-              'Lutech Digital',
+              job.company?.name ?? 'Công ty',
               style: TextStyle(color: const Color(0xFF246BFD)),
             ),
             SizedBox(height: 6),
             Divider(),
             SizedBox(height: 6),
             Text(
-              'Toà nhà 18 Lê Lợi, TP. Huế',
+              job.location,
               style: TextStyle(color: Colors.black87, fontSize: 12),
             ),
             SizedBox(height: 4),
             Text(
-              '40 - 80 triệu /tháng',
+              job.salaryRange ?? 'Thỏa thuận',
               style: TextStyle(
                 color: Colors.blueAccent,
                 fontWeight: FontWeight.w600,
@@ -63,13 +76,13 @@ class JobDetailInfomationHeader extends StatelessWidget {
             Wrap(
               spacing: 10,
               children: [
-                buildTag('Full Time'),
-                buildTag('TP. Huế & 2 nơi khác'),
+                buildTag(job.jobType ?? 'Full Time'),
+                buildTag(job.workLocation ?? 'Văn phòng'),
               ],
             ),
             SizedBox(height: 10),
             Text(
-              'Đăng vào 10 ngày trước, hết hạn 15/10/2025',
+              'Đăng vào ${_formatDate(job.postedAt)}, hết hạn ${_formatDate(job.expiresAt)}',
               style: TextStyle(
                 color: const Color.fromARGB(221, 103, 102, 102),
                 fontSize: 12,

@@ -10,6 +10,7 @@ class CardItemJob extends StatelessWidget {
   final String workingTime;
   final String workLocation;
   final String logoCompany;
+  final VoidCallback? onTap;
   const CardItemJob({
     required this.titleJob,
     required this.conpanyJob,
@@ -18,6 +19,7 @@ class CardItemJob extends StatelessWidget {
     required this.workSalary,
     required this.workLocation,
     required this.logoCompany,
+    this.onTap,
     super.key,
   });
 
@@ -26,7 +28,9 @@ class CardItemJob extends StatelessWidget {
     final double logoSize = SizeConfig.screenWidth * 0.12;
     final double gapBetweenLogoAndContent = 12;
     final double leftInset = logoSize + gapBetweenLogoAndContent;
-    return Container(
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -107,6 +111,7 @@ class CardItemJob extends StatelessWidget {
           ),
         ],
       ),
+    ),
     );
   }
 }

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_application_1/core/constants/app_dimensions.dart';
 import 'package:flutter_application_1/core/constants/app_strings.dart';
 import 'package:flutter_application_1/core/utils/validators.dart';
+import 'package:flutter_application_1/core/providers/auth_provider.dart';
 import 'package:flutter_application_1/features/auth/presentation/widgets/auth_button.dart';
 import 'package:flutter_application_1/features/auth/presentation/widgets/auth_text_field.dart';
 import 'package:flutter_application_1/features/auth/presentation/widgets/remember_me_checkbox.dart';
@@ -9,29 +11,25 @@ import 'package:flutter_application_1/features/auth/presentation/widgets/social_
 import 'package:flutter_application_1/features/auth/presentation/widgets/text_link_row.dart';
 
 /// Login form widget
-class LoginForm extends StatefulWidget {
-  final Function(String email, String password, bool rememberMe) onLogin;
+class LoginForm extends ConsumerStatefulWidget {
   final VoidCallback onForgotPassword;
   final VoidCallback onSignUp;
   final VoidCallback onGoogleLogin;
   final VoidCallback onFacebookLogin;
-  final bool isLoading;
 
   const LoginForm({
     super.key,
-    required this.onLogin,
     required this.onForgotPassword,
     required this.onSignUp,
     required this.onGoogleLogin,
     required this.onFacebookLogin,
-    this.isLoading = false,
   });
 
   @override
-  State<LoginForm> createState() => _LoginFormState();
+  ConsumerState<LoginForm> createState() => _LoginFormState();
 }
 
-class _LoginFormState extends State<LoginForm> {
+class _LoginFormState extends ConsumerState<LoginForm> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -46,16 +44,32 @@ class _LoginFormState extends State<LoginForm> {
 
   void _handleLogin() {
     if (_formKey.currentState?.validate() ?? false) {
-      widget.onLogin(
+      ref.read(authProvider.notifier).login(
         _emailController.text.trim(),
         _passwordController.text,
-        _rememberMe,
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authProvider);
+    final isLoading = ref.watch(authLoadingProvider);
+    final error = ref.watch(authErrorProvider);
+
+    // Show error if exists
+    if (error != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error),
+            backgroundColor: Colors.red,
+          ),
+        );
+        ref.read(authProvider.notifier).clearError();
+      });
+    }
+
     return Form(
       key: _formKey,
       child: Column(
@@ -104,7 +118,7 @@ class _LoginFormState extends State<LoginForm> {
           AuthButton(
             onPressed: _handleLogin,
             text: AppStrings.login,
-            isLoading: widget.isLoading,
+            isLoading: isLoading,
           ),
           const SizedBox(height: AppDimensions.spaceL),
           SocialAuthSection(

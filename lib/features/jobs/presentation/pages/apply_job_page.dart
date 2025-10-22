@@ -1,18 +1,21 @@
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_application_1/core/constants/app_colors.dart';
 import 'package:flutter_application_1/core/constants/app_dimensions.dart';
+import 'package:flutter_application_1/core/providers/application_provider.dart';
+import 'package:flutter_application_1/core/providers/auth_provider.dart';
 import 'package:go_router/go_router.dart';
 
-class ApplyJobPage extends StatefulWidget {
+class ApplyJobPage extends ConsumerStatefulWidget {
   const ApplyJobPage({super.key});
 
   @override
-  State<ApplyJobPage> createState() => _ApplyJobPageState();
+  ConsumerState<ApplyJobPage> createState() => _ApplyJobPageState();
 }
 
-class _ApplyJobPageState extends State<ApplyJobPage> {
+class _ApplyJobPageState extends ConsumerState<ApplyJobPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -66,15 +69,34 @@ class _ApplyJobPageState extends State<ApplyJobPage> {
       _isUploading = true;
     });
 
-    // Simulate upload
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      // Get current user
+      final currentUser = ref.read(currentUserProvider);
+      if (currentUser == null) {
+        _showErrorDialog('Vui lòng đăng nhập để ứng tuyển');
+        return;
+      }
 
-    setState(() {
-      _isUploading = false;
-    });
+      // TODO: Upload file to server and get URL
+      // For now, we'll use a placeholder URL
+      final resumeUrl = 'https://drive.google.com/cv.pdf';
 
-    // Show success dialog
-    _showSuccessDialog();
+      // Apply for job using API
+      await ref.read(applicationProvider.notifier).applyForJob(
+        jobId: 1, // TODO: Get from route parameters
+        coverLetter: _motivationController.text,
+        resume: resumeUrl,
+      );
+
+      // Show success dialog
+      _showSuccessDialog();
+    } catch (e) {
+      _showErrorDialog('Có lỗi xảy ra: $e');
+    } finally {
+      setState(() {
+        _isUploading = false;
+      });
+    }
   }
 
   void _showErrorDialog(String message) {

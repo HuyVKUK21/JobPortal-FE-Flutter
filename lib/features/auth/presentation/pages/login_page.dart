@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_application_1/core/constants/app_dimensions.dart';
 import 'package:flutter_application_1/core/constants/app_strings.dart';
+import 'package:flutter_application_1/core/providers/auth_provider.dart';
 import 'package:flutter_application_1/features/auth/presentation/widgets/auth_header.dart';
 import 'package:flutter_application_1/features/auth/presentation/widgets/login_form.dart';
 import 'package:go_router/go_router.dart';
 
 /// Login page
-class LoginPage extends StatelessWidget {
+class LoginPage extends ConsumerWidget {
   const LoginPage({super.key});
 
   void _handleLogin(
@@ -54,7 +56,21 @@ class LoginPage extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Listen to auth state changes
+    ref.listen<AuthState>(authProvider, (previous, next) {
+      if (next.isAuthenticated) {
+        // Login successful, navigate back
+        context.pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đăng nhập thành công!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    });
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -71,8 +87,6 @@ class LoginPage extends StatelessWidget {
                 ),
                 const SizedBox(height: AppDimensions.spaceXXL),
                 LoginForm(
-                  onLogin: (email, password, rememberMe) =>
-                      _handleLogin(context, email, password, rememberMe),
                   onForgotPassword: () => _handleForgotPassword(context),
                   onSignUp: () => _handleSignUp(context),
                   onGoogleLogin: () => _handleGoogleLogin(context),

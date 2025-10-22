@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/core/models/job.dart';
 
 class JobDetailInfomationSummary extends StatelessWidget {
   final String title;
-  const JobDetailInfomationSummary({required this.title, super.key});
+  final Job job;
+  const JobDetailInfomationSummary({required this.title, required this.job, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -20,34 +22,34 @@ class JobDetailInfomationSummary extends StatelessWidget {
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text('Trình độ công việc', style: TextStyle()),
-                  SizedBox(height: 4),
+                children: [
+                  const Text('Trình độ công việc', style: TextStyle()),
+                  const SizedBox(height: 4),
                   Text(
-                    'Junior',
-                    style: TextStyle(
+                    job.jobInformation?.jobLevel ?? 'Không yêu cầu',
+                    style: const TextStyle(
                       color: Color(0xFF246BFD),
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
                   ),
-                  SizedBox(height: 4),
-                  Text('Yêu cầu học vấn', style: TextStyle()),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
+                  const Text('Yêu cầu học vấn', style: TextStyle()),
+                  const SizedBox(height: 4),
                   Text(
-                    'Đại học trở lên',
-                    style: TextStyle(
+                    job.jobInformation?.education ?? 'Không yêu cầu',
+                    style: const TextStyle(
                       color: Color(0xFF246BFD),
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
                   ),
-                  SizedBox(height: 4),
-                  Text('Số lượng', style: TextStyle()),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
+                  const Text('Số lượng ứng viên', style: TextStyle()),
+                  const SizedBox(height: 4),
                   Text(
-                    '2 người',
-                    style: TextStyle(
+                    '${job.jobInformation?.numberOfApplicants ?? 0} người',
+                    style: const TextStyle(
                       color: Color(0xFF246BFD),
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
@@ -60,39 +62,38 @@ class JobDetailInfomationSummary extends StatelessWidget {
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text('Danh mục công việc', style: TextStyle()),
-                  SizedBox(height: 4),
+                children: [
+                  const Text('Danh mục công việc', style: TextStyle()),
+                  const SizedBox(height: 4),
                   Text(
-                    'Công nghệ phần mềm',
+                    job.categories.isNotEmpty ? job.categories.first.name : 'Không có',
                     softWrap: true,
                     overflow: TextOverflow.visible,
-
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Color(0xFF246BFD),
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
                   ),
-                  SizedBox(height: 4),
-                  Text('Yêu cầu kinh nghiệm', style: TextStyle()),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
+                  const Text('Yêu cầu kinh nghiệm', style: TextStyle()),
+                  const SizedBox(height: 4),
                   Text(
-                    '1-3 năm',
-                    style: TextStyle(
+                    job.experienceRequired?.experiences ?? 'Không yêu cầu',
+                    style: const TextStyle(
                       color: Color(0xFF246BFD),
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
                   ),
-                  SizedBox(height: 4),
-                  Text('Website', style: TextStyle()),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
+                  const Text('Website', style: TextStyle()),
+                  const SizedBox(height: 4),
                   Text(
-                    'lutech.vn',
+                    job.company?.website ?? 'Không có',
                     softWrap: true,
                     overflow: TextOverflow.visible,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Color(0xFF246BFD),
                       fontWeight: FontWeight.bold,
                       fontSize: 16,

@@ -121,9 +121,12 @@ class AppNavigationBar {
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
-        path: '/jobDetail',
+        path: '/jobDetail/:jobId',
         name: 'jobDetail',
-        builder: (context, state) => const DetailJob(),
+        builder: (context, state) {
+          final jobId = int.parse(state.pathParameters['jobId']!);
+          return DetailJob(jobId: jobId);
+        },
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
