@@ -49,6 +49,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final response = await _apiService.login(request);
 
       if (response.isSuccess && response.data != null) {
+        // Save token to storage
+        await TokenStorageService.saveToken(response.data!.token);
+        
         // Save user data to storage
         await TokenStorageService.saveUserData({
           'userId': response.data!.user.userId,
@@ -166,7 +169,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
-  void logout() {
+  Future<void> logout() async {
+    await TokenStorageService.clearAll();
     _apiService.clearToken();
     state = AuthState();
   }
@@ -180,14 +184,16 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = state.copyWith(isLoading: true);
     
     try {
-      // Initialize token from storage
-      await _apiService.initializeToken();
-      
-      // Check if user is logged in
+      // Check if user is logged in and token is valid
       final isLoggedIn = await TokenStorageService.isLoggedIn();
       if (isLoggedIn) {
+        final token = await TokenStorageService.getToken();
         final userData = await TokenStorageService.getUserData();
-        if (userData != null) {
+        
+        if (token != null && userData != null) {
+          // Set token in API service
+          _apiService.setToken(token);
+          
           // Create user object from stored data
           final user = User(
             userId: userData['userId'] ?? 0,
@@ -199,13 +205,23 @@ class AuthNotifier extends StateNotifier<AuthState> {
           
           state = state.copyWith(
             user: user,
-            token: _apiService.token,
+            token: token,
             isLoading: false,
             error: null,
           );
+        } else {
+          // Clear invalid data
+          await TokenStorageService.clearAll();
+          state = state.copyWith(isLoading: false);
         }
+      } else {
+        // Token expired or not found, clear storage
+        await TokenStorageService.clearAll();
+        state = state.copyWith(isLoading: false);
       }
     } catch (e) {
+      // Clear storage on error
+      await TokenStorageService.clearAll();
       state = state.copyWith(
         isLoading: false,
         error: 'Failed to initialize auth: $e',

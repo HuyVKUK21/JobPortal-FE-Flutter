@@ -11,6 +11,8 @@ class CardItemJob extends StatelessWidget {
   final String workLocation;
   final String logoCompany;
   final VoidCallback? onTap;
+  final bool isSaved;
+  final VoidCallback? onBookmarkTap;
   const CardItemJob({
     required this.titleJob,
     required this.conpanyJob,
@@ -20,6 +22,8 @@ class CardItemJob extends StatelessWidget {
     required this.workLocation,
     required this.logoCompany,
     this.onTap,
+    this.isSaved = false,
+    this.onBookmarkTap,
     super.key,
   });
 
@@ -75,8 +79,11 @@ class CardItemJob extends StatelessWidget {
                 ),
               ),
               IconButton(
-                onPressed: () {},
-                icon: Icon(Icons.bookmark_border, color: Colors.grey[700]),
+                onPressed: onBookmarkTap,
+                icon: Icon(
+                  isSaved ? Icons.bookmark : Icons.bookmark_border,
+                  color: isSaved ? Colors.red : Colors.grey[700],
+                ),
               ),
             ],
           ),
@@ -88,7 +95,7 @@ class CardItemJob extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(location, style: TextStyle(color: Colors.black87)),
+                Text(workLocation, style: TextStyle(color: Colors.black87)),
 
                 const SizedBox(height: 8),
 
@@ -102,9 +109,13 @@ class CardItemJob extends StatelessWidget {
                 ),
 
                 const SizedBox(height: 12),
+                // Tags: workingTime first, then location
                 Wrap(
                   spacing: 10,
-                  children: [buildTag(workingTime), buildTag(workLocation)],
+                  children: [
+                    buildTag(workingTime), 
+                    buildTag(location)
+                  ],
                 ),
               ],
             ),

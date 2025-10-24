@@ -12,17 +12,21 @@ import 'package:flutter_application_1/features/auth/presentation/widgets/text_li
 
 /// Login form widget
 class LoginForm extends ConsumerStatefulWidget {
+  final Function(String email, String password, bool rememberMe) onLogin;
   final VoidCallback onForgotPassword;
   final VoidCallback onSignUp;
   final VoidCallback onGoogleLogin;
   final VoidCallback onFacebookLogin;
+  final bool isLoading;
 
   const LoginForm({
     super.key,
+    required this.onLogin,
     required this.onForgotPassword,
     required this.onSignUp,
     required this.onGoogleLogin,
     required this.onFacebookLogin,
+    this.isLoading = false,
   });
 
   @override
@@ -44,17 +48,16 @@ class _LoginFormState extends ConsumerState<LoginForm> {
 
   void _handleLogin() {
     if (_formKey.currentState?.validate() ?? false) {
-      ref.read(authProvider.notifier).login(
+      widget.onLogin(
         _emailController.text.trim(),
         _passwordController.text,
+        _rememberMe,
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authProvider);
-    final isLoading = ref.watch(authLoadingProvider);
     final error = ref.watch(authErrorProvider);
 
     // Show error if exists
@@ -118,7 +121,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
           AuthButton(
             onPressed: _handleLogin,
             text: AppStrings.login,
-            isLoading: isLoading,
+            isLoading: widget.isLoading,
           ),
           const SizedBox(height: AppDimensions.spaceL),
           SocialAuthSection(

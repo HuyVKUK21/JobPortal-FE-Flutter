@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_application_1/core/utils/app_screen_layout.dart';
-import 'package:flutter_application_1/core/providers/job_provider.dart';
 import 'package:flutter_application_1/core/providers/application_provider.dart';
 import 'package:flutter_application_1/core/providers/auth_provider.dart';
 import 'package:flutter_application_1/presentations/widgets/card_item_job.dart';
@@ -9,18 +8,28 @@ import 'package:flutter_application_1/presentations/widgets/search_box.dart';
 import 'package:flutter_application_1/presentations/widgets/title_header_bar.dart';
 import 'package:go_router/go_router.dart';
 
-class SavedJobScreen extends ConsumerWidget {
+class SavedJobScreen extends ConsumerStatefulWidget {
   const SavedJobScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SavedJobScreen> createState() => _SavedJobScreenState();
+}
+
+class _SavedJobScreenState extends ConsumerState<SavedJobScreen> {
+  @override
+  void initState() {
+    super.initState();
     // Load saved jobs when page initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final currentUser = ref.read(currentUserProvider);
       if (currentUser != null) {
-        ref.read(applicationProvider.notifier).getSavedJobs();
+        ref.read(applicationProvider.notifier).getSavedJobs(currentUser.userId);
       }
     });
+  }
+
+  @override
+  Widget build(BuildContext context) {
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -65,7 +74,7 @@ class SavedJobScreen extends ConsumerWidget {
               onPressed: () {
                 final currentUser = ref.read(currentUserProvider);
                 if (currentUser != null) {
-                  ref.read(applicationProvider.notifier).getSavedJobs();
+                  ref.read(applicationProvider.notifier).getSavedJobs(currentUser.userId);
                 }
               },
               child: const Text('Thử lại'),

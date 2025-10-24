@@ -5,8 +5,6 @@ import 'package:flutter_application_1/core/constants/app_dimensions.dart';
 import 'package:flutter_application_1/core/utils/app_screen_layout.dart';
 import 'package:flutter_application_1/core/utils/size_config.dart';
 import 'package:flutter_application_1/core/providers/job_provider.dart';
-import 'package:flutter_application_1/core/models/job.dart';
-import 'package:flutter_application_1/presentations/widgets/header_section_job_detail.dart';
 import 'package:flutter_application_1/presentations/widgets/job_detail_infomation.dart';
 import 'package:flutter_application_1/presentations/widgets/job_detail_infomation_summary.dart';
 import 'package:flutter_application_1/presentations/widgets/job_details_infomation_header.dart';
@@ -63,7 +61,20 @@ class _DetailJobState extends ConsumerState<DetailJob> {
   }
 
   void _applyJob() {
-    context.pushNamed('applyJob');
+    final jobs = ref.read(jobsProvider);
+    final job = jobs.firstWhere(
+      (job) => job.jobId == widget.jobId,
+      orElse: () => throw Exception('Job not found'),
+    );
+    
+    context.pushNamed(
+      'applyJob',
+      pathParameters: {'jobId': widget.jobId.toString()},
+      queryParameters: {
+        'jobTitle': job.title,
+        'companyName': job.company?.name ?? 'Công ty',
+      },
+    );
   }
 
   @override
@@ -190,7 +201,7 @@ class _DetailJobState extends ConsumerState<DetailJob> {
                 color: Colors.white,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 10,
                     offset: const Offset(0, -5),
                   ),

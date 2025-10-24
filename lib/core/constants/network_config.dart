@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 
 class NetworkConfig {
   // Base URLs cho các platform khác nhau
@@ -23,12 +24,15 @@ class NetworkConfig {
   
   // Debug method để test các URLs
   static void printNetworkInfo() {
-    print('🌐 Network Configuration:');
-    print('Platform: ${Platform.operatingSystem}');
-    print('Base URL: $baseUrl');
-    print('Localhost: $_localhost');
-    print('Android Emulator: $_androidEmulator');
-    print('Network IP: $_networkIP');
+    // Debug logging - remove in production
+    if (kDebugMode) {
+      print('🌐 Network Configuration:');
+      print('Platform: ${Platform.operatingSystem}');
+      print('Base URL: $baseUrl');
+      print('Localhost: $_localhost');
+      print('Android Emulator: $_androidEmulator');
+      print('Network IP: $_networkIP');
+    }
   }
   
   // Test connectivity
@@ -39,10 +43,10 @@ class NetworkConfig {
       final request = await client.getUrl(uri);
       final response = await request.close();
       
-      print('✅ Network test successful: ${response.statusCode}');
+      if (kDebugMode) print('✅ Network test successful: ${response.statusCode}');
       return response.statusCode == 200;
     } catch (e) {
-      print('❌ Network test failed: $e');
+      if (kDebugMode) print('❌ Network test failed: $e');
       return false;
     }
   }

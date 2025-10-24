@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 class Job {
   final int jobId;
   final String title;
@@ -36,7 +38,8 @@ class Job {
   });
 
   factory Job.fromJson(Map<String, dynamic> json) {
-    print('🔍 Parsing Job: ${json['title']}');
+    // Debug logging - remove in production
+    if (kDebugMode) print('🔍 Parsing Job: ${json['title']}');
     return Job(
       jobId: json['jobId'] ?? 0,
       title: json['title'] ?? '',
@@ -70,6 +73,27 @@ class Job {
       expiresAt: json['expiresAt'],
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'jobId': jobId,
+      'title': title,
+      'description': description,
+      if (candidateRequirement != null) 'candidateRequirement': candidateRequirement,
+      'location': location,
+      if (jobType != null) 'jobType': jobType,
+      if (workLocation != null) 'workLocation': workLocation,
+      if (salaryRange != null) 'salaryRange': salaryRange,
+      if (workTime != null) 'workTime': workTime,
+      if (experienceRequired != null) 'experienceRequired': experienceRequired!.toJson(),
+      if (jobInformation != null) 'jobInformation': jobInformation!.toJson(),
+      if (company != null) 'company': company!.toJson(),
+      'skills': skills.map((skill) => skill.toJson()).toList(),
+      'categories': categories.map((category) => category.toJson()).toList(),
+      if (postedAt != null) 'postedAt': postedAt,
+      if (expiresAt != null) 'expiresAt': expiresAt,
+    };
+  }
 }
 
 class ExperienceRequired {
@@ -86,6 +110,13 @@ class ExperienceRequired {
       id: json['id'] ?? 0,
       experiences: json['experiences'] ?? '',
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'experiences': experiences,
+    };
   }
 }
 
@@ -113,6 +144,16 @@ class JobInformation {
       gender: json['gender'] ?? '',
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'jobLevel': jobLevel,
+      'education': education,
+      'numberOfApplicants': numberOfApplicants,
+      'workingForm': workingForm,
+      'gender': gender,
+    };
+  }
 }
 
 class Company {
@@ -139,6 +180,16 @@ class Company {
       website: json['website'],
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'companyId': companyId,
+      'name': name,
+      if (industry != null) 'industry': industry,
+      if (location != null) 'location': location,
+      if (website != null) 'website': website,
+    };
+  }
 }
 
 class Skill {
@@ -156,6 +207,13 @@ class Skill {
       name: json['name'] ?? '',
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'skillId': skillId,
+      'name': name,
+    };
+  }
 }
 
 class Category {
@@ -172,6 +230,13 @@ class Category {
       categoryId: json['categoryId'] ?? 0,
       name: json['name'] ?? '',
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'categoryId': categoryId,
+      'name': name,
+    };
   }
 }
 
@@ -208,24 +273,39 @@ class JobSearchRequest {
 }
 
 class JobFilterRequest {
+  final String? jobType;
+  final String? workLocation;
   final String? location;
-  final List<int>? categoryIds;
-  final List<int>? skillIds;
-  final String? experienceLevel;
+  final int? categoryId;
+  final int? skillId;
+  final int? page;
+  final int? size;
+  final String? sortBy;
+  final String? sortOrder;
 
   JobFilterRequest({
+    this.jobType,
+    this.workLocation,
     this.location,
-    this.categoryIds,
-    this.skillIds,
-    this.experienceLevel,
+    this.categoryId,
+    this.skillId,
+    this.page,
+    this.size,
+    this.sortBy,
+    this.sortOrder,
   });
 
   Map<String, dynamic> toJson() {
     return {
+      if (jobType != null) 'jobType': jobType,
+      if (workLocation != null) 'workLocation': workLocation,
       if (location != null) 'location': location,
-      if (categoryIds != null) 'categoryIds': categoryIds,
-      if (skillIds != null) 'skillIds': skillIds,
-      if (experienceLevel != null) 'experienceLevel': experienceLevel,
+      if (categoryId != null) 'categoryId': categoryId,
+      if (skillId != null) 'skillId': skillId,
+      if (page != null) 'page': page,
+      if (size != null) 'size': size,
+      if (sortBy != null) 'sortBy': sortBy,
+      if (sortOrder != null) 'sortOrder': sortOrder,
     };
   }
 }

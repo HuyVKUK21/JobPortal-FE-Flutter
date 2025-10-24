@@ -10,7 +10,7 @@ import 'package:flutter_application_1/features/auth/presentation/widgets/terms_c
 
 /// Register form widget
 class RegisterForm extends StatefulWidget {
-  final Function(String name, String email, String password) onRegister;
+  final Function(String firstName, String lastName, String email, String phone, String password) onRegister;
   final VoidCallback onGoogleRegister;
   final VoidCallback onFacebookRegister;
   final bool isLoading;
@@ -29,16 +29,20 @@ class RegisterForm extends StatefulWidget {
 
 class _RegisterFormState extends State<RegisterForm> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
   final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _agreeToTerms = false;
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
     _emailController.dispose();
+    _phoneController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -57,8 +61,10 @@ class _RegisterFormState extends State<RegisterForm> {
 
     if (_formKey.currentState?.validate() ?? false) {
       widget.onRegister(
-        _nameController.text.trim(),
+        _firstNameController.text.trim(),
+        _lastNameController.text.trim(),
         _emailController.text.trim(),
+        _phoneController.text.trim(),
         _passwordController.text,
       );
     }
@@ -72,8 +78,16 @@ class _RegisterFormState extends State<RegisterForm> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           AuthTextField(
-            controller: _nameController,
-            hintText: AppStrings.fullName,
+            controller: _firstNameController,
+            hintText: 'Họ',
+            prefixIcon: Icons.person_outline,
+            keyboardType: TextInputType.name,
+            validator: Validators.validateName,
+          ),
+          const SizedBox(height: AppDimensions.space),
+          AuthTextField(
+            controller: _lastNameController,
+            hintText: 'Tên',
             prefixIcon: Icons.person_outline,
             keyboardType: TextInputType.name,
             validator: Validators.validateName,
@@ -85,6 +99,14 @@ class _RegisterFormState extends State<RegisterForm> {
             prefixIcon: Icons.email_outlined,
             keyboardType: TextInputType.emailAddress,
             validator: Validators.validateEmail,
+          ),
+          const SizedBox(height: AppDimensions.space),
+          AuthTextField(
+            controller: _phoneController,
+            hintText: 'Số điện thoại',
+            prefixIcon: Icons.phone_outlined,
+            keyboardType: TextInputType.phone,
+            validator: Validators.validatePhone,
           ),
           const SizedBox(height: AppDimensions.space),
           AuthTextField(

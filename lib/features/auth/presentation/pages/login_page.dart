@@ -13,15 +13,12 @@ class LoginPage extends ConsumerWidget {
 
   void _handleLogin(
     BuildContext context,
+    WidgetRef ref,
     String email,
     String password,
     bool rememberMe,
-  ) {
-    // TODO: Implement with Riverpod provider
-    debugPrint('Login: $email, Remember: $rememberMe');
-    
-    // After successful login, pop back to previous screen
-    // context.pop();
+  ) async {
+    await ref.read(authProvider.notifier).login(email, password);
   }
 
   void _handleForgotPassword(BuildContext context) {
@@ -87,10 +84,13 @@ class LoginPage extends ConsumerWidget {
                 ),
                 const SizedBox(height: AppDimensions.spaceXXL),
                 LoginForm(
+                  onLogin: (email, password, rememberMe) => 
+                      _handleLogin(context, ref, email, password, rememberMe),
                   onForgotPassword: () => _handleForgotPassword(context),
                   onSignUp: () => _handleSignUp(context),
                   onGoogleLogin: () => _handleGoogleLogin(context),
                   onFacebookLogin: () => _handleFacebookLogin(context),
+                  isLoading: ref.watch(authProvider).isLoading,
                 ),
                 const SizedBox(height: AppDimensions.spaceL),
               ],

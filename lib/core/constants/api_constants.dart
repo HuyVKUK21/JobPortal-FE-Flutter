@@ -14,12 +14,19 @@ class ApiConstants {
   static const String jobsEndpoint = '/jobs';
   static const String jobSearchEndpoint = '/jobs/search';
   static const String jobFilterEndpoint = '/jobs/filter';
+  static const String jobQuickSearchEndpoint = '/jobs/quick-search';
   
   // Job Seeker endpoints
   static const String jobSeekerProfileEndpoint = '/job-seekers/profile/me';
   static const String jobSeekerApplicationsEndpoint = '/job-seekers/applications';
   static const String jobSeekerSavedJobsEndpoint = '/job-seekers/saved-jobs';
   static const String applicationsEndpoint = '/applications';
+  static const String savedJobsEndpoint = '/job-seekers/saved-jobs';
+  
+  // Application endpoints
+  static const String applyJobEndpoint = '/applications';
+  static const String myApplicationsEndpoint = '/applications/seeker';
+  static const String applicationDetailEndpoint = '/applications';
   
   // Employer endpoints
   static const String employerApplicationsEndpoint = '/employer';

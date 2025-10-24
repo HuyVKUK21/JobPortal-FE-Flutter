@@ -90,7 +90,7 @@ class JobCard extends StatelessWidget {
                   onPressed: onBookmarkTap,
                   icon: Icon(
                     isSaved ? Icons.bookmark : Icons.bookmark_border,
-                    color: isSaved ? const Color(0xFF6C63FF) : Colors.grey[700],
+                    color: isSaved ? Colors.red : Colors.grey[700],
                   ),
                 ),
               ],
@@ -102,7 +102,7 @@ class JobCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    location,
+                    workLocation,
                     style: const TextStyle(
                       color: Colors.black87,
                     ),
@@ -121,7 +121,7 @@ class JobCard extends StatelessWidget {
                     spacing: 10,
                     children: [
                       TagChip(label: workingTime),
-                      TagChip(label: workLocation),
+                      TagChip(label: location),
                     ],
                   ),
                 ],

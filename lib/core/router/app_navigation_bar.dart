@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/features/auth/presentation/pages/login_page.dart';
 import 'package:flutter_application_1/features/auth/presentation/pages/register_page.dart';
-import 'package:flutter_application_1/features/jobs/presentation/pages/apply_job_page.dart';
+import 'package:flutter_application_1/presentations/pages/apply_job_page.dart';
 import 'package:flutter_application_1/features/jobs/presentation/pages/home_page.dart';
 import 'package:flutter_application_1/features/jobs/presentation/pages/search_jobs_page.dart';
 import 'package:flutter_application_1/features/profile/presentation/pages/profile_page.dart';
 import 'package:flutter_application_1/features/profile/presentation/pages/profile_placeholder_page.dart';
-import 'package:flutter_application_1/presentations/pages/application_screen.dart';
+import 'package:flutter_application_1/features/applications/presentation/pages/applications_page.dart';
+import 'package:flutter_application_1/features/applications/presentation/pages/application_detail_page.dart';
+import 'package:flutter_application_1/core/models/application.dart';
 import 'package:flutter_application_1/presentations/pages/detail_job.dart';
 import 'package:flutter_application_1/presentations/pages/lastest_job_screen.dart';
 import 'package:flutter_application_1/presentations/pages/messages_screen.dart';
@@ -71,9 +73,9 @@ class AppNavigationBar {
             navigatorKey: _shellNavigatorApplicationJob,
             routes: <RouteBase>[
               GoRoute(
-                path: '/applicationScreen',
-                name: 'applicationScreen',
-                builder: (context, state) => const ApplicationScreen(),
+                path: '/applications',
+                name: 'applications',
+                builder: (context, state) => const ApplicationsPage(),
               ),
             ],
           ),
@@ -130,6 +132,30 @@ class AppNavigationBar {
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
+        path: '/applyJob/:jobId',
+        name: 'applyJob',
+        builder: (context, state) {
+          final jobId = int.parse(state.pathParameters['jobId']!);
+          final jobTitle = state.uri.queryParameters['jobTitle'] ?? 'Việc làm';
+          final companyName = state.uri.queryParameters['companyName'] ?? 'Công ty';
+          return ApplyJobPage(
+            jobId: jobId,
+            jobTitle: jobTitle,
+            companyName: companyName,
+          );
+        },
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/applicationDetail',
+        name: 'applicationDetail',
+        builder: (context, state) {
+          final application = state.extra as ApplicationResponse;
+          return ApplicationDetailPage(application: application);
+        },
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
         path: '/login',
         name: 'login',
         builder: (context, state) => const LoginPage(),
@@ -145,12 +171,6 @@ class AppNavigationBar {
         path: '/searchJobs',
         name: 'searchJobs',
         builder: (context, state) => const SearchJobsPage(),
-      ),
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: '/applyJob',
-        name: 'applyJob',
-        builder: (context, state) => const ApplyJobPage(),
       ),
     ],
   );

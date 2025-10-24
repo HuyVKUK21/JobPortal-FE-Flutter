@@ -1,26 +1,57 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_application_1/core/constants/app_dimensions.dart';
 import 'package:flutter_application_1/core/constants/app_strings.dart';
+import 'package:flutter_application_1/core/providers/auth_provider.dart';
 import 'package:flutter_application_1/features/auth/presentation/widgets/auth_header.dart';
 import 'package:flutter_application_1/features/auth/presentation/widgets/register_form.dart';
 import 'package:flutter_application_1/features/auth/presentation/widgets/text_link_row.dart';
 import 'package:go_router/go_router.dart';
 
 /// Register page
-class RegisterPage extends StatelessWidget {
+class RegisterPage extends ConsumerWidget {
   const RegisterPage({super.key});
 
   void _handleRegister(
     BuildContext context,
-    String name,
+    WidgetRef ref,
+    String firstName,
+    String lastName,
     String email,
+    String phone,
     String password,
-  ) {
-    // TODO: Implement with Riverpod provider
-    debugPrint('Register: $name, $email');
-    
-    // After successful registration, navigate to login or home
-    // context.go('/login');
+  ) async {
+    // Register as job seeker by default
+    await ref.read(authProvider.notifier).registerJobSeeker(
+      firstName: firstName,
+      lastName: lastName,
+      email: email,
+      password: password,
+      phone: phone,
+    );
+
+    // Check if registration was successful
+    final authState = ref.read(authProvider);
+    if (!authState.isLoading && authState.error == null) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đăng ký thành công! Vui lòng đăng nhập.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        context.pop(); // Go back to login page
+      }
+    } else if (authState.error != null) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(authState.error!),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   void _handleGoogleRegister(BuildContext context) {
@@ -42,7 +73,9 @@ class RegisterPage extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authProvider);
+    
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -67,10 +100,11 @@ class RegisterPage extends StatelessWidget {
                 ),
                 const SizedBox(height: AppDimensions.spaceXXL),
                 RegisterForm(
-                  onRegister: (name, email, password) =>
-                      _handleRegister(context, name, email, password),
+                  onRegister: (firstName, lastName, email, phone, password) =>
+                      _handleRegister(context, ref, firstName, lastName, email, phone, password),
                   onGoogleRegister: () => _handleGoogleRegister(context),
                   onFacebookRegister: () => _handleFacebookRegister(context),
+                  isLoading: authState.isLoading,
                 ),
                 const SizedBox(height: AppDimensions.spaceL),
                 TextLinkRow(

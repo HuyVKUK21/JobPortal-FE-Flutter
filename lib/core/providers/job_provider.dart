@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/job.dart';
-import '../models/api_response.dart';
 import '../services/api_service.dart';
 
 // Job State
@@ -56,17 +55,16 @@ class JobNotifier extends StateNotifier<JobState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final response = await _apiService.searchJobs(
-        title: title,
+      final request = JobSearchRequest(
+        keyword: title,
         location: location,
         categoryIds: categoryIds,
         skillIds: skillIds,
-        salaryMin: salaryMin,
-        salaryMax: salaryMax,
-        experienceRequiredId: experienceRequiredId,
-        companyName: companyName,
-        jobType: jobType,
+        minSalary: salaryMin,
+        maxSalary: salaryMax,
       );
+      
+      final response = await _apiService.searchJobs(request);
 
       if (response.isSuccess && response.data != null) {
         state = state.copyWith(
@@ -93,7 +91,7 @@ class JobNotifier extends StateNotifier<JobState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final response = await _apiService.searchJobs(title: keyword);
+      final response = await _apiService.quickSearch(keyword);
 
       if (response.isSuccess && response.data != null) {
         state = state.copyWith(
@@ -130,7 +128,7 @@ class JobNotifier extends StateNotifier<JobState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final response = await _apiService.filterJobs(
+      final request = JobFilterRequest(
         jobType: jobType,
         workLocation: workLocation,
         location: location,
@@ -141,6 +139,8 @@ class JobNotifier extends StateNotifier<JobState> {
         sortBy: sortBy,
         sortOrder: sortOrder,
       );
+      
+      final response = await _apiService.filterJobs(request);
 
       if (response.isSuccess && response.data != null) {
         state = state.copyWith(

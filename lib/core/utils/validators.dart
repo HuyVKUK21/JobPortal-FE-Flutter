@@ -56,6 +56,28 @@ class Validators {
     return null;
   }
 
+  /// Validate phone number
+  static String? validatePhone(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Vui lòng nhập số điện thoại';
+    }
+    
+    // Remove all non-digit characters
+    final phoneDigits = value.replaceAll(RegExp(r'[^\d]'), '');
+    
+    // Check if it's a valid Vietnamese phone number
+    if (phoneDigits.length < 10 || phoneDigits.length > 11) {
+      return 'Số điện thoại phải có 10-11 chữ số';
+    }
+    
+    // Check if it starts with valid Vietnamese prefixes
+    if (!phoneDigits.startsWith('0') && !phoneDigits.startsWith('84')) {
+      return 'Số điện thoại không hợp lệ';
+    }
+    
+    return null;
+  }
+
   /// Validate required field
   static String? validateRequired(String? value, String fieldName) {
     if (value == null || value.trim().isEmpty) {

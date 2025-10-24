@@ -1,70 +1,41 @@
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_application_1/core/constants/app_colors.dart';
 import 'package:flutter_application_1/core/constants/app_dimensions.dart';
 import 'package:flutter_application_1/core/constants/job_constants.dart';
+import 'package:flutter_application_1/core/providers/job_provider.dart';
+import 'package:flutter_application_1/core/providers/application_provider.dart';
+import 'package:flutter_application_1/core/providers/auth_provider.dart';
 import 'package:flutter_application_1/core/widgets/search_field.dart';
 import 'package:flutter_application_1/features/jobs/presentation/widgets/empty_search_state.dart';
-import 'package:flutter_application_1/features/jobs/presentation/widgets/filter_bottom_sheet.dart';
+import 'package:flutter_application_1/features/jobs/presentation/widgets/simple_filter_bottom_sheet.dart';
 import 'package:flutter_application_1/features/jobs/presentation/widgets/job_card.dart';
 import 'package:go_router/go_router.dart';
 
-class SearchJobsPage extends StatefulWidget {
+class SearchJobsPage extends ConsumerStatefulWidget {
   const SearchJobsPage({super.key});
 
   @override
-  State<SearchJobsPage> createState() => _SearchJobsPageState();
+  ConsumerState<SearchJobsPage> createState() => _SearchJobsPageState();
 }
 
-class _SearchJobsPageState extends State<SearchJobsPage> {
+class _SearchJobsPageState extends ConsumerState<SearchJobsPage> {
   final _searchController = TextEditingController();
   String _searchQuery = '';
   String _selectedSort = JobConstants.sortMostRelevant;
   bool _hasSearched = false;
-
-  // Mock data
-  final List<Map<String, String>> _allJobs = [
-    {
-      'title': 'Graphic Designer',
-      'company': 'Apple Inc.',
-      'location': 'Tokyo, Japan',
-      'salary': '\$10,000 - \$20,000 /month',
-      'workingTime': 'Full Time',
-      'workLocation': 'Onsite',
-      'logo': 'assets/logo_lutech.png',
-    },
-    {
-      'title': 'UI & UX Designer',
-      'company': 'Pinterest',
-      'location': 'New York, United States',
-      'salary': '\$8,000 - \$20,000 /month',
-      'workingTime': 'Full Time',
-      'workLocation': 'Remote',
-      'logo': 'assets/logo_google.png',
-    },
-    {
-      'title': 'Web Designer',
-      'company': 'Twitter Inc.',
-      'location': 'Chicago, United States',
-      'salary': '\$5,000 - \$12,000 /month',
-      'workingTime': 'Freelance',
-      'workLocation': 'Remote',
-      'logo': 'assets/logo_google.png',
-    },
-  ];
+  Timer? _debounceTimer;
+  
+  // Track active filters
+  Map<String, dynamic> _activeFilters = {};
 
   @override
   void dispose() {
     _searchController.dispose();
+    _debounceTimer?.cancel();
     super.dispose();
-  }
-
-  List<Map<String, String>> get _filteredJobs {
-    if (_searchQuery.isEmpty) return [];
-    return _allJobs
-        .where((job) =>
-            job['title']!.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-            job['company']!.toLowerCase().contains(_searchQuery.toLowerCase()))
-        .toList();
   }
 
   void _onSearchChanged(String query) {
@@ -72,6 +43,32 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
       _searchQuery = query;
       _hasSearched = query.isNotEmpty;
     });
+
+    // Debounce search to avoid too many API calls
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      if (query.isNotEmpty) {
+        ref.read(jobProvider.notifier).quickSearch(query);
+      }
+    });
+  }
+
+  // Convert Vietnamese sort option to English field name
+  String _convertSortToFieldName(String sortOption) {
+    switch (sortOption) {
+      case JobConstants.sortMostRelevant:
+        return 'postedAt'; // Default to posted date for relevance
+      case JobConstants.sortAlphabetical:
+        return 'title';
+      case JobConstants.sortHighestSalary:
+        return 'salaryRange';
+      case JobConstants.sortNewlyPosted:
+        return 'postedAt';
+      case JobConstants.sortEndingSoon:
+        return 'deadline';
+      default:
+        return 'postedAt';
+    }
   }
 
   void _showFilterOptions() {
@@ -79,10 +76,30 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => FilterBottomSheet(
+      builder: (context) => SimpleFilterBottomSheet(
         onApply: (filters) {
-          // TODO: Apply filters
-          debugPrint('Filters applied: $filters');
+          // Debug filter values
+          if (kDebugMode) {
+            print('🔍 Filter values: $filters');
+          }
+          
+          // Store active filters
+          setState(() {
+            _activeFilters = Map.from(filters);
+          });
+          
+          // Apply filters using API with correct field mapping
+          ref.read(jobProvider.notifier).filterJobs(
+            jobType: filters['jobType'],
+            workLocation: filters['workLocation'],
+            location: filters['location'],
+            categoryId: null,
+            skillId: null,
+            page: 0,
+            size: 20,
+            sortBy: _convertSortToFieldName(_selectedSort),
+            sortOrder: 'desc',
+          );
         },
       ),
     );
@@ -128,7 +145,14 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final resultsCount = _filteredJobs.length;
+    final jobState = ref.watch(jobProvider);
+    final savedJobs = ref.watch(savedJobsProvider);
+    final currentUser = ref.watch(currentUserProvider);
+    
+    final jobs = jobState.jobs;
+    final isLoading = jobState.isLoading;
+    final error = jobState.error;
+    final resultsCount = jobs.length;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -182,7 +206,7 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '$resultsCount kết quả',
+                      '${jobs.length} kết quả',
                       style: const TextStyle(
                         fontSize: AppDimensions.fontL,
                         fontWeight: FontWeight.w600,
@@ -223,29 +247,61 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
             // Content
             Expanded(
               child: _hasSearched
-                  ? resultsCount > 0
-                      ? ListView.separated(
-                          padding: const EdgeInsets.all(AppDimensions.space),
-                          itemCount: resultsCount,
-                          separatorBuilder: (context, index) =>
-                              const SizedBox(height: AppDimensions.space),
-                          itemBuilder: (context, index) {
-                            final job = _filteredJobs[index];
-                            return JobCard(
-                              title: job['title']!,
-                              companyName: job['company']!,
-                              location: job['location']!,
-                              workLocation: job['workLocation']!,
-                              workingTime: job['workingTime']!,
-                              salary: job['salary']!,
-                              companyLogo: job['logo']!,
-                              onTap: () {
-                                context.pushNamed('jobDetail');
-                              },
-                            );
-                          },
-                        )
-                      : const EmptySearchState()
+                  ? isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : error != null
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text('Lỗi: $error'),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      if (_searchQuery.isNotEmpty) {
+                                        ref.read(jobProvider.notifier).quickSearch(_searchQuery);
+                                      }
+                                    },
+                                    child: const Text('Thử lại'),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : resultsCount > 0
+                              ? ListView.separated(
+                                  padding: const EdgeInsets.all(AppDimensions.space),
+                                  itemCount: resultsCount,
+                                  separatorBuilder: (context, index) =>
+                                      const SizedBox(height: AppDimensions.space),
+                                  itemBuilder: (context, index) {
+                                    final job = jobs[index];
+                                    final isSaved = currentUser != null && 
+                                        savedJobs.any((savedJob) => savedJob.job?.jobId == job.jobId);
+                                    
+                                    return JobCard(
+                                      title: job.title,
+                                      companyName: job.company?.name ?? 'Công ty',
+                                      location: job.location,
+                                      workLocation: job.workLocation ?? '',
+                                      workingTime: job.jobType ?? 'Full Time',
+                                      salary: job.salaryRange ?? 'Thỏa thuận',
+                                      companyLogo: 'assets/logo_lutech.png',
+                                      isSaved: isSaved,
+                                      onBookmarkTap: () {
+                                        if (currentUser != null) {
+                                          if (isSaved) {
+                                            ref.read(applicationProvider.notifier).unsaveJob(currentUser.userId, job.jobId);
+                                          } else {
+                                            ref.read(applicationProvider.notifier).saveJob(currentUser.userId, job.jobId);
+                                          }
+                                        }
+                                      },
+                                      onTap: () {
+                                        context.pushNamed('jobDetail', pathParameters: {'jobId': job.jobId.toString()});
+                                      },
+                                    );
+                                  },
+                                )
+                              : const EmptySearchState()
                   : const SizedBox(),
             ),
           ],

@@ -1,13 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/application.dart';
-import '../models/api_response.dart';
+import '../models/application_request.dart';
 import '../services/api_service.dart';
 
 // Application State
 class ApplicationState {
-  final List<Application> applications;
+  final List<ApplicationResponse> applications;
   final List<SavedJob> savedJobs;
-  final Application? selectedApplication;
+  final ApplicationResponse? selectedApplication;
   final bool isLoading;
   final String? error;
 
@@ -20,9 +20,9 @@ class ApplicationState {
   });
 
   ApplicationState copyWith({
-    List<Application>? applications,
+    List<ApplicationResponse>? applications,
     List<SavedJob>? savedJobs,
-    Application? selectedApplication,
+    ApplicationResponse? selectedApplication,
     bool? isLoading,
     String? error,
   }) {
@@ -50,9 +50,8 @@ class ApplicationNotifier extends StateNotifier<ApplicationState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final request = ApplicationRequest(
+      final request = ApplyJobRequest(
         jobId: jobId,
-        seekerId: 0, // Will be set by backend from JWT token
         coverLetter: coverLetter,
         resume: resume,
       );
@@ -81,11 +80,11 @@ class ApplicationNotifier extends StateNotifier<ApplicationState> {
     }
   }
 
-  Future<void> getMyApplications() async {
+  Future<void> getMyApplications(int seekerId) async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final response = await _apiService.getMyApplications();
+      final response = await _apiService.getMyApplications(seekerId);
 
       if (response.isSuccess && response.data != null) {
         state = state.copyWith(
@@ -163,11 +162,11 @@ class ApplicationNotifier extends StateNotifier<ApplicationState> {
     }
   }
 
-  Future<void> saveJob(int jobId) async {
+  Future<void> saveJob(int seekerId, int jobId) async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final response = await _apiService.saveJob(jobId);
+      final response = await _apiService.saveJob(seekerId, jobId);
 
       if (response.isSuccess && response.data != null) {
         // Add to saved jobs list
@@ -191,11 +190,11 @@ class ApplicationNotifier extends StateNotifier<ApplicationState> {
     }
   }
 
-  Future<void> getSavedJobs() async {
+  Future<void> getSavedJobs(int seekerId) async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final response = await _apiService.getSavedJobs();
+      final response = await _apiService.getSavedJobs(seekerId);
 
       if (response.isSuccess && response.data != null) {
         state = state.copyWith(
@@ -217,11 +216,11 @@ class ApplicationNotifier extends StateNotifier<ApplicationState> {
     }
   }
 
-  Future<void> unsaveJob(int jobId) async {
+  Future<void> unsaveJob(int seekerId, int jobId) async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final response = await _apiService.unsaveJob(jobId);
+      final response = await _apiService.unsaveJob(seekerId, jobId);
 
       if (response.isSuccess) {
         // Remove from saved jobs list
@@ -261,7 +260,7 @@ final applicationProvider = StateNotifierProvider<ApplicationNotifier, Applicati
   return ApplicationNotifier();
 });
 
-final applicationsProvider = Provider<List<Application>>((ref) {
+final applicationsProvider = Provider<List<ApplicationResponse>>((ref) {
   return ref.watch(applicationProvider.select((state) => state.applications));
 });
 
@@ -269,8 +268,7 @@ final savedJobsProvider = Provider<List<SavedJob>>((ref) {
   return ref.watch(applicationProvider.select((state) => state.savedJobs));
 });
 
-
-final selectedApplicationProvider = Provider<Application?>((ref) {
+final selectedApplicationProvider = Provider<ApplicationResponse?>((ref) {
   return ref.watch(applicationProvider).selectedApplication;
 });
 

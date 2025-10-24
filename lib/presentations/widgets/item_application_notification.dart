@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_application_1/core/utils/size_config.dart';
 
 class ItemApplicationNotification extends StatelessWidget {

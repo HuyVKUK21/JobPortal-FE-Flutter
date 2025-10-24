@@ -192,6 +192,54 @@ class InterviewRequest {
   }
 }
 
+class ApplicationResponse {
+  final int applicationId;
+  final int jobId;
+  final int seekerId;
+  final String status;
+  final String appliedAt;
+  final String? coverLetter;
+  final String? resume;
+  final Job? job;
+
+  ApplicationResponse({
+    required this.applicationId,
+    required this.jobId,
+    required this.seekerId,
+    required this.status,
+    required this.appliedAt,
+    this.coverLetter,
+    this.resume,
+    this.job,
+  });
+
+  factory ApplicationResponse.fromJson(Map<String, dynamic> json) {
+    return ApplicationResponse(
+      applicationId: json['applicationId'] ?? 0,
+      jobId: json['jobId'] ?? 0,
+      seekerId: json['seekerId'] ?? 0,
+      status: json['status'] ?? '',
+      appliedAt: json['appliedAt'] ?? '',
+      coverLetter: json['coverLetter'],
+      resume: json['resume'],
+      job: json['job'] != null ? Job.fromJson(json['job']) : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'applicationId': applicationId,
+      'jobId': jobId,
+      'seekerId': seekerId,
+      'status': status,
+      'appliedAt': appliedAt,
+      if (coverLetter != null) 'coverLetter': coverLetter,
+      if (resume != null) 'resume': resume,
+      if (job != null) 'job': job!.toJson(),
+    };
+  }
+}
+
 
 
 

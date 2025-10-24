@@ -23,9 +23,9 @@ class _MyAppState extends ConsumerState<MyApp> {
   void initState() {
     super.initState();
     // Initialize auth state when app starts
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   ref.read(authProvider.notifier).initializeAuth();
-    // });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(authProvider.notifier).initializeAuth();
+    });
   }
 
   @override

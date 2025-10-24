@@ -177,7 +177,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, -5),
                 ),
@@ -355,7 +355,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
               activeTrackColor: AppColors.primary,
               inactiveTrackColor: Colors.grey[300],
               thumbColor: AppColors.primary,
-              overlayColor: AppColors.primary.withOpacity(0.2),
+              overlayColor: AppColors.primary.withValues(alpha: 0.2),
               trackHeight: 4,
             ),
             child: RangeSlider(
