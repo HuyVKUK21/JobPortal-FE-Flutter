@@ -22,12 +22,7 @@ class LoginPage extends ConsumerWidget {
   }
 
   void _handleForgotPassword(BuildContext context) {
-    // TODO: Navigate to forgot password page
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Chức năng quên mật khẩu đang được phát triển'),
-      ),
-    );
+    context.pushNamed('forgotPassword');
   }
 
   void _handleSignUp(BuildContext context) {

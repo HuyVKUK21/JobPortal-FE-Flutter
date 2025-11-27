@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/core/constants/app_colors.dart';
+import 'package:flutter_application_1/core/constants/app_strings.dart';
+import 'package:flutter_application_1/core/utils/size_config.dart';
 import 'package:go_router/go_router.dart';
 
 class SearchBox extends StatelessWidget {
@@ -6,29 +9,32 @@ class SearchBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    SizeConfig.init(context);
     return GestureDetector(
       onTap: () {
         // Navigate to search page
         context.pushNamed('searchJobs');
       },
       child: Container(
-        padding: const EdgeInsets.all(4),
+        height: SizeConfig.screenHeight * 0.06,
         decoration: BoxDecoration(
-          color: const Color.fromARGB(255, 241, 241, 241),
+          color: AppColors.searchBackground,
           borderRadius: BorderRadius.circular(12),
         ),
-        child: const TextField(
+        child: TextField(
           enabled: false, // Disable text input, only allow tap to navigate
           decoration: InputDecoration(
-            hintText: 'Tìm kiếm từ khoá...',
-            hintStyle: TextStyle(
-              fontSize: 14,
-              color: Color.fromARGB(255, 181, 181, 181),
-            ),
             border: InputBorder.none,
-            prefixIcon: Icon(Icons.search, color: Colors.grey),
-            suffixIcon: Icon(Icons.filter_list, color: Colors.grey),
-            contentPadding: EdgeInsets.symmetric(vertical: 12),
+            hintText: AppStrings.searchPlaceholder,
+            hintStyle: const TextStyle(
+              color: AppColors.textSecondary,
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
+            prefixIcon: const Icon(Icons.search, color: AppColors.searchIcon),
+            suffixIcon: const Icon(Icons.filter_list, color: AppColors.searchIcon),
           ),
         ),
       ),

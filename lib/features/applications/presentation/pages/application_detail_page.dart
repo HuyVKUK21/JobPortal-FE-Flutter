@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/core/constants/app_colors.dart';
+import 'package:flutter_application_1/core/constants/app_dimensions.dart';
+import 'package:flutter_application_1/core/constants/company_colors.dart';
+import 'package:flutter_application_1/core/constants/status_colors.dart';
 import 'package:flutter_application_1/core/models/application.dart';
 
 class ApplicationDetailPage extends StatelessWidget {
@@ -12,19 +16,19 @@ class ApplicationDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.background,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.black, size: 20),
+          icon: const Icon(Icons.arrow_back_ios, color: AppColors.textPrimary, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Chi tiết đơn ứng tuyển',
           style: TextStyle(
-            color: Colors.black,
+            color: AppColors.textPrimary,
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -32,7 +36,7 @@ class ApplicationDetailPage extends StatelessWidget {
         centerTitle: true,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppDimensions.spaceL),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -324,76 +328,18 @@ class ApplicationDetailPage extends StatelessWidget {
   }
 
   Color _getCompanyColor(String companyName) {
-    switch (companyName.toLowerCase()) {
-      case 'google':
-        return const Color(0xFF4285F4);
-      case 'paypal':
-        return const Color(0xFF0070BA);
-      case 'figma':
-        return const Color(0xFFF24E1E);
-      case 'twitter':
-        return const Color(0xFF1DA1F2);
-      case 'pinterest':
-        return const Color(0xFFE60023);
-      default:
-        return const Color(0xFF6B7280);
-    }
+    return CompanyColors.getColor(companyName);
   }
 
   String _getCompanyInitial(String companyName) {
-    if (companyName.isEmpty) return '?';
-    
-    switch (companyName.toLowerCase()) {
-      case 'google':
-        return 'G';
-      case 'paypal':
-        return 'P';
-      case 'figma':
-        return 'F';
-      case 'twitter':
-        return 'T';
-      case 'pinterest':
-        return 'P';
-      default:
-        return companyName[0].toUpperCase();
-    }
+    return CompanyColors.getInitial(companyName);
   }
 
   Color _getStatusColor(String? status) {
-    switch (status?.toLowerCase()) {
-      case 'sent':
-      case 'submitted':
-        return const Color(0xFF3B82F6); // Blue
-      case 'accepted':
-      case 'approved':
-        return const Color(0xFF10B981); // Green
-      case 'rejected':
-      case 'declined':
-        return const Color(0xFFEF4444); // Red
-      case 'pending':
-      case 'review':
-        return const Color(0xFFF59E0B); // Yellow/Orange
-      default:
-        return const Color(0xFF6B7280); // Gray
-    }
+    return StatusColors.getColor(status);
   }
 
   String _getStatusText(String? status) {
-    switch (status?.toLowerCase()) {
-      case 'sent':
-      case 'submitted':
-        return 'Đã gửi';
-      case 'accepted':
-      case 'approved':
-        return 'Đã chấp nhận';
-      case 'rejected':
-      case 'declined':
-        return 'Đã từ chối';
-      case 'pending':
-      case 'review':
-        return 'Đang xem xét';
-      default:
-        return 'Không xác định';
-    }
+    return StatusColors.getText(status);
   }
 }

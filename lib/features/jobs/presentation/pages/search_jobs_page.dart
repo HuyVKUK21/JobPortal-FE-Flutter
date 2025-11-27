@@ -155,7 +155,8 @@ class _SearchJobsPageState extends ConsumerState<SearchJobsPage> {
     final resultsCount = jobs.length;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
+      resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: Column(
           children: [

@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_application_1/features/auth/presentation/pages/login_page.dart';
 import 'package:flutter_application_1/features/auth/presentation/pages/register_page.dart';
+import 'package:flutter_application_1/features/auth/presentation/pages/forgot_password_page.dart';
+import 'package:flutter_application_1/features/auth/presentation/pages/otp_verification_page.dart';
+import 'package:flutter_application_1/features/auth/presentation/pages/create_new_password_page.dart';
 import 'package:flutter_application_1/presentations/pages/apply_job_page.dart';
 import 'package:flutter_application_1/features/jobs/presentation/pages/home_page.dart';
 import 'package:flutter_application_1/features/jobs/presentation/pages/search_jobs_page.dart';
@@ -9,6 +13,7 @@ import 'package:flutter_application_1/features/profile/presentation/pages/profil
 import 'package:flutter_application_1/features/applications/presentation/pages/applications_page.dart';
 import 'package:flutter_application_1/features/applications/presentation/pages/application_detail_page.dart';
 import 'package:flutter_application_1/core/models/application.dart';
+import 'package:flutter_application_1/core/providers/auth_provider.dart';
 import 'package:flutter_application_1/presentations/pages/detail_job.dart';
 import 'package:flutter_application_1/presentations/pages/lastest_job_screen.dart';
 import 'package:flutter_application_1/presentations/pages/messages_screen.dart';
@@ -16,6 +21,21 @@ import 'package:flutter_application_1/presentations/pages/notification_page_scre
 import 'package:flutter_application_1/presentations/pages/saved_job_screen.dart';
 import 'package:flutter_application_1/presentations/wrapper/main_wrapper.dart';
 import 'package:go_router/go_router.dart';
+
+// Wrapper widget to check auth state
+class _ProfileRouteWrapper extends ConsumerWidget {
+  const _ProfileRouteWrapper();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authProvider);
+    
+    if (authState.user == null) {
+      return const ProfilePlaceholderPage();
+    }
+    return const ProfilePage();
+  }
+}
 
 class AppNavigationBar {
   AppNavigationBar._();
@@ -95,15 +115,7 @@ class AppNavigationBar {
               GoRoute(
                 path: '/profile',
                 name: 'profile',
-                builder: (context, state) {
-                  // TODO: Check auth state with Riverpod
-                  // Show placeholder when not authenticated
-                  final isAuthenticated = false; // Replace with actual auth check
-                  if (!isAuthenticated) {
-                    return const ProfilePlaceholderPage();
-                  }
-                  return const ProfilePage();
-                },
+                builder: (context, state) => const _ProfileRouteWrapper(),
               ),
             ],
           ),
@@ -171,6 +183,27 @@ class AppNavigationBar {
         path: '/searchJobs',
         name: 'searchJobs',
         builder: (context, state) => const SearchJobsPage(),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/forgotPassword',
+        name: 'forgotPassword',
+        builder: (context, state) => const ForgotPasswordPage(),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/otpVerification',
+        name: 'otpVerification',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          return OTPVerificationPage(extra: extra);
+        },
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/createNewPassword',
+        name: 'createNewPassword',
+        builder: (context, state) => const CreateNewPasswordPage(),
       ),
     ],
   );

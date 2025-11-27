@@ -102,16 +102,152 @@ class _SavedJobScreenState extends ConsumerState<SavedJobScreen> {
               workLocation: savedJob.job?.workLocation ?? '',
               workingTime: savedJob.job?.jobType ?? 'Full Time',
               workSalary: savedJob.job?.salaryRange ?? 'Thỏa thuận',
-              logoCompany: 'assets/logo_lutech.png', // Default logo
+              logoCompany: 'assets/logo_lutech.png',
+              isSaved: true, // Always true in saved jobs screen
               onTap: () {
                 if (savedJob.job?.jobId != null) {
                   context.pushNamed('jobDetail', pathParameters: {'jobId': savedJob.job!.jobId.toString()});
                 }
               },
+              onBookmarkTap: () {
+                _showRemoveBottomSheet(context, savedJob);
+              },
             ),
           );
         }).toList(),
       ),
+    );
+  }
+
+  void _showRemoveBottomSheet(BuildContext context, dynamic savedJob) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
+          ),
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Handle bar
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 24),
+              
+              // Title
+              const Text(
+                'Xóa khỏi danh sách đã lưu?',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1A1A1A),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              
+              // Description
+              Text(
+                'Bạn có chắc chắn muốn xóa "${savedJob.job?.title ?? 'công việc này'}" khỏi danh sách đã lưu không?',
+                style: const TextStyle(
+                  fontSize: 15,
+                  color: Color(0xFF6B7280),
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              
+              // Buttons
+              Row(
+                children: [
+                  // Cancel button
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        side: const BorderSide(
+                          color: Color(0xFFE5E7EB),
+                          width: 1.5,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'Hủy',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF374151),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  
+                  // Remove button
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // Remove the saved job
+                        final currentUser = ref.read(currentUserProvider);
+                        if (currentUser != null && savedJob.job?.jobId != null) {
+                          ref.read(applicationProvider.notifier).unsaveJob(
+                            currentUser.userId,
+                            savedJob.job!.jobId,
+                          );
+                        }
+                        Navigator.pop(context);
+                        
+                        // Show success snackbar
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Đã xóa khỏi danh sách đã lưu'),
+                            duration: Duration(seconds: 2),
+                            backgroundColor: Color(0xFF10B981),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        backgroundColor: const Color(0xFF4285F4),
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'Xóa',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
     );
   }
 }

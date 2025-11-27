@@ -7,6 +7,7 @@ import 'package:flutter_application_1/presentations/widgets/header_section.dart'
 import 'package:flutter_application_1/presentations/widgets/job_category.dart';
 import 'package:flutter_application_1/presentations/widgets/search_box.dart';
 import 'package:flutter_application_1/presentations/widgets/title_category_header.dart';
+import 'package:flutter_application_1/presentations/widgets/featured_company_card.dart';
 import 'package:go_router/go_router.dart';
 
 class HomePageScreen extends StatelessWidget {
@@ -39,7 +40,62 @@ class HomePageScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     BannerHomePage(),
+                    SizedBox(height: 24),
+                    
+                    // Featured Companies Section
+                    TitleCategoryHeader(
+                      onPressed: () {},
+                      titleCategoryHeader: 'Thương hiệu lớn tiêu biểu',
+                    ),
                     SizedBox(height: 16),
+                    SizedBox(
+                      height: 280,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        children: [
+                          FeaturedCompanyCard(
+                            companyName: 'Ngân Hàng TMCP Việt Nam Thịnh Vượng (VPBank)',
+                            category: 'Ngân hàng',
+                            logoAsset: 'assets/logo_lutech.png',
+                            salaryBadge: 'VNR500',
+                            isFollowing: false,
+                            onFollowTap: () {},
+                            onTap: () {},
+                          ),
+                          const SizedBox(width: 12),
+                          FeaturedCompanyCard(
+                            companyName: 'NGÂN HÀNG THƯƠNG MẠI CỔ PHẦN KỸ THƯƠNG VIỆT NAM',
+                            category: 'Ngân hàng',
+                            logoAsset: 'assets/logo_google.png',
+                            salaryBadge: 'VNR500',
+                            isFollowing: false,
+                            onFollowTap: () {},
+                            onTap: () {},
+                          ),
+                          const SizedBox(width: 12),
+                          FeaturedCompanyCard(
+                            companyName: 'CÔNG TY CỔ PHẦN TẬP ĐOÀN TRƯỜNG HẢI',
+                            category: 'Sản xuất',
+                            logoAsset: 'assets/logo_lutech.png',
+                            isFollowing: false,
+                            onFollowTap: () {},
+                            onTap: () {},
+                          ),
+                          const SizedBox(width: 12),
+                          FeaturedCompanyCard(
+                            companyName: 'TẬP ĐOÀN CÔNG NGHIỆP - VIỄN THÔNG QUÂN ĐỘI',
+                            category: 'Viễn thông',
+                            logoAsset: 'assets/logo_google.png',
+                            isFollowing: true,
+                            onFollowTap: () {},
+                            onTap: () {},
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 24),
+                    
                     TitleCategoryHeader(
                       onPressed: () {},
                       titleCategoryHeader: 'Việc làm đề xuất',

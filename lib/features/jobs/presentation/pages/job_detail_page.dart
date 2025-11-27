@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/core/constants/app_colors.dart';
+import 'package:flutter_application_1/core/constants/app_dimensions.dart';
+import 'package:flutter_application_1/core/constants/app_strings.dart';
 import 'package:flutter_application_1/core/utils/app_screen_layout.dart';
 import 'package:flutter_application_1/core/utils/size_config.dart';
 import 'package:flutter_application_1/features/jobs/presentation/widgets/job_detail_header.dart';
@@ -85,15 +88,15 @@ class _JobDetailPageState extends State<JobDetailPage> {
     ];
 
     final sections = [
-      JobDetailInfo(items: jobDescription, title: 'Mô tả công việc'),
-      JobDetailInfo(items: requirements, title: 'Yêu cầu tối thiểu'),
-      JobSkillList(skills: skills, title: 'Yêu cầu kỹ năng'),
-      const JobDetailSummaryCard(title: 'Tóm tắt công việc'),
-      JobDetailInfo(items: companyInfo, title: 'Chi tiết về công ty'),
+      JobDetailInfo(items: jobDescription, title: AppStrings.jobDescription),
+      JobDetailInfo(items: requirements, title: AppStrings.requirements),
+      JobSkillList(skills: skills, title: AppStrings.skills),
+      JobDetailSummaryCard(title: AppStrings.summary),
+      JobDetailInfo(items: companyInfo, title: AppStrings.companyInfo),
     ];
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       body: AppScreenLayout(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

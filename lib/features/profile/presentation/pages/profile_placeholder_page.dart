@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/core/constants/app_colors.dart';
 import 'package:flutter_application_1/core/constants/app_dimensions.dart';
+import 'package:flutter_application_1/core/constants/lottie_assets.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lottie/lottie.dart';
 
 /// Placeholder page shown in Profile tab when user is not authenticated
 class ProfilePlaceholderPage extends StatelessWidget {
@@ -10,7 +12,7 @@ class ProfilePlaceholderPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Center(
           child: Padding(
@@ -18,17 +20,11 @@ class ProfilePlaceholderPage extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(AppDimensions.spaceXL),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.person_outline,
-                    size: 80,
-                    color: AppColors.primary,
-                  ),
+                Lottie.network(
+                  LottieAssets.userProfile,
+                  width: 200,
+                  height: 200,
+                  fit: BoxFit.contain,
                 ),
                 const SizedBox(height: AppDimensions.spaceL),
                 const Text(
@@ -36,17 +32,15 @@ class ProfilePlaceholderPage extends StatelessWidget {
                   style: TextStyle(
                     fontSize: AppDimensions.fontLargeTitle,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                    fontFamily: 'SF Pro',
+                    color: AppColors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: AppDimensions.spaceM),
-                Text(
+                const Text(
                   'Đăng nhập để truy cập hồ sơ và quản lý ứng tuyển của bạn',
                   style: TextStyle(
                     fontSize: AppDimensions.fontL,
-                    color: Colors.grey[600],
-                    fontFamily: 'SF Pro',
+                    color: AppColors.textSecondary,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -71,7 +65,6 @@ class ProfilePlaceholderPage extends StatelessWidget {
                       style: TextStyle(
                         fontSize: AppDimensions.fontL,
                         fontWeight: FontWeight.w600,
-                        fontFamily: 'SF Pro',
                       ),
                     ),
                   ),
@@ -84,12 +77,11 @@ class ProfilePlaceholderPage extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
+                      const Text(
                         'Chưa có tài khoản? ',
                         style: TextStyle(
                           fontSize: AppDimensions.fontM,
-                          color: Colors.grey[700],
-                          fontFamily: 'SF Pro',
+                          color: AppColors.textSecondary,
                         ),
                       ),
                       const Text(
@@ -98,7 +90,6 @@ class ProfilePlaceholderPage extends StatelessWidget {
                           fontSize: AppDimensions.fontM,
                           color: AppColors.primary,
                           fontWeight: FontWeight.w600,
-                          fontFamily: 'SF Pro',
                         ),
                       ),
                     ],

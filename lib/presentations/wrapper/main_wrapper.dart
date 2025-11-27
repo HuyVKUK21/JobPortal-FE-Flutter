@@ -16,13 +16,11 @@ class MainWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
       body: navigationShell,
-      bottomNavigationBar: SafeArea(
-        top: false,
-        child: BottomNavBar(
-          currentIndex: navigationShell.currentIndex,
-          onTap: _onTap,
-        ),
+      bottomNavigationBar: BottomNavBar(
+        currentIndex: navigationShell.currentIndex,
+        onTap: _onTap,
       ),
     );
   }

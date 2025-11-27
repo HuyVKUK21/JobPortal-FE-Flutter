@@ -1,9 +1,9 @@
+import 'package:flutter_application_1/core/constants/network_config.dart';
+
 class ApiConstants {
-  // Base URL - Sử dụng IP address thay vì localhost cho Android
-  // localhost:8080 - cho web/desktop
-  // 10.0.2.2:8080 - cho Android emulator (localhost của host machine)
-  // 192.168.x.x:8080 - cho Android device (IP thực của máy host)
-  static const String baseUrl = 'http://10.0.2.2:8080/api';
+  // Base URL - Automatically selects correct URL based on platform
+  // Uses NetworkConfig to handle emulator vs real device
+  static String get baseUrl => NetworkConfig.baseUrl;
   
   // Authentication endpoints
   static const String loginEndpoint = '/auth/login';

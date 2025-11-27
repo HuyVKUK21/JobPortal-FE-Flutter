@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_application_1/core/constants/app_colors.dart';
+import 'package:flutter_application_1/core/constants/app_dimensions.dart';
 import 'package:flutter_application_1/core/models/application_request.dart';
 import 'package:flutter_application_1/core/providers/auth_provider.dart';
 import 'package:flutter_application_1/core/services/api_service.dart';
+import 'package:flutter_application_1/core/constants/lottie_assets.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lottie/lottie.dart';
 
 class ApplyJobPage extends ConsumerStatefulWidget {
   final int jobId;
@@ -170,13 +173,67 @@ class _ApplyJobPageState extends ConsumerState<ApplyJobPage> {
 
       if (response.isSuccess) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Nộp đơn thành công!'),
-              backgroundColor: Colors.green,
+        if (mounted) {
+          await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Lottie.network(
+                      LottieAssets.successCheck,
+                      width: 150,
+                      height: 150,
+                      repeat: false,
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Nộp đơn thành công!',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Hồ sơ của bạn đã được gửi đến nhà tuyển dụng.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop(); // Close dialog
+                          context.pop(); // Go back
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text('Đóng'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           );
-          context.pop();
+        }
         }
       } else {
         setState(() {
@@ -200,19 +257,19 @@ class _ApplyJobPageState extends ConsumerState<ApplyJobPage> {
     final isTablet = screenWidth > 600;
     
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppColors.backgroundGrey,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.background,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Color(0xFF2C3E50), size: 20),
+          icon: const Icon(Icons.arrow_back_ios, color: AppColors.textPrimary, size: 20),
           onPressed: () => context.pop(),
         ),
         title: Text(
           'Ứng tuyển việc làm',
           style: TextStyle(
-            color: const Color(0xFF2C3E50),
+            color: AppColors.textPrimary,
             fontSize: isTablet ? 20 : 18,
             fontWeight: FontWeight.w700,
           ),
@@ -531,24 +588,26 @@ class _ApplyJobPageState extends ConsumerState<ApplyJobPage> {
               color: _uploadedFileName != null ? Colors.green[50] : Colors.grey[50],
             ),
             child: _isUploading
-                ? const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Lottie.network(
+                              LottieAssets.loadingSpinner,
+                              width: 60,
+                              height: 60,
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Đang tải lên...',
+                              style: TextStyle(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
                         ),
-                        SizedBox(height: 8),
-                        Text(
-                          'Đang tải lên...',
-                          style: TextStyle(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
+                      )
                 : _uploadedFileName != null
                     ? Padding(
                         padding: const EdgeInsets.all(16),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/core/constants/app_colors.dart';
 import 'package:flutter_application_1/core/utils/size_config.dart';
 import 'package:flutter_application_1/core/widgets/build_tag.dart';
 
@@ -37,8 +38,8 @@ class CardItemJob extends StatelessWidget {
       child: Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: const Color(0xFFE3DEDE)),
+        color: AppColors.background,
+        border: Border.all(color: AppColors.border),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -74,7 +75,7 @@ class CardItemJob extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: 4),
-                    Text(conpanyJob, style: TextStyle(color: Colors.black54)),
+                    Text(conpanyJob, style: const TextStyle(color: AppColors.textSecondary)),
                   ],
                 ),
               ),
@@ -82,7 +83,7 @@ class CardItemJob extends StatelessWidget {
                 onPressed: onBookmarkTap,
                 icon: Icon(
                   isSaved ? Icons.bookmark : Icons.bookmark_border,
-                  color: isSaved ? Colors.red : Colors.grey[700],
+                  color: isSaved ? AppColors.error : AppColors.grey700,
                 ),
               ),
             ],
@@ -95,14 +96,14 @@ class CardItemJob extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(workLocation, style: TextStyle(color: Colors.black87)),
+                Text(workLocation, style: const TextStyle(color: AppColors.textPrimary)),
 
                 const SizedBox(height: 8),
 
                 Text(
                   workSalary,
                   style: TextStyle(
-                    color: Colors.blueAccent,
+                    color: AppColors.info,
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
                   ),
