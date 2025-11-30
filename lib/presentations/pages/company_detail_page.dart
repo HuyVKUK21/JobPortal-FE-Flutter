@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_application_1/core/constants/app_colors.dart';
 import 'package:flutter_application_1/core/widgets/widgets.dart';
 import 'package:flutter_application_1/presentations/widgets/card_item_job.dart';
+import 'package:flutter_application_1/core/providers/company_provider.dart';
+import 'package:flutter_application_1/core/models/job.dart';
 
-class CompanyDetailPage extends StatelessWidget {
+class CompanyDetailPage extends ConsumerWidget {
+  final int? companyId;
   final String companyName;
   final String category;
   final String logoAsset;
@@ -14,6 +18,7 @@ class CompanyDetailPage extends StatelessWidget {
 
   const CompanyDetailPage({
     super.key,
+    this.companyId,
     required this.companyName,
     required this.category,
     required this.logoAsset,
@@ -24,7 +29,7 @@ class CompanyDetailPage extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       extendBodyBehindAppBar: true,
@@ -281,38 +286,94 @@ class CompanyDetailPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   
-                  // Job Cards
-                  CardItemJob(
-                    titleJob: 'Senior Backend Developer',
-                    conpanyJob: companyName,
-                    location: location ?? 'Hà Nội',
-                    workLocation: 'Hybrid',
-                    workingTime: 'Full Time',
-                    workSalary: '30 - 50 triệu /tháng',
-                    logoCompany: logoAsset,
-                    onTap: () {},
-                  ),
-                  const SizedBox(height: 12),
-                  CardItemJob(
-                    titleJob: 'UI/UX Designer',
-                    conpanyJob: companyName,
-                    location: location ?? 'Hà Nội',
-                    workLocation: 'Onsite',
-                    workingTime: 'Full Time',
-                    workSalary: '20 - 35 triệu /tháng',
-                    logoCompany: logoAsset,
-                    onTap: () {},
-                  ),
-                  const SizedBox(height: 12),
-                  CardItemJob(
-                    titleJob: 'Product Manager',
-                    conpanyJob: companyName,
-                    location: location ?? 'Hà Nội',
-                    workLocation: 'Hybrid',
-                    workingTime: 'Full Time',
-                    workSalary: '40 - 60 triệu /tháng',
-                    logoCompany: logoAsset,
-                    onTap: () {},
+                  // Job Cards from API
+                  Consumer(
+                    builder: (context, ref, child) {
+                      if (companyId == null) {
+                        return const Padding(
+                          padding: EdgeInsets.all(24.0),
+                          child: Text(
+                            'Không có thông tin công ty',
+                            style: TextStyle(color: AppColors.textSecondary),
+                          ),
+                        );
+                      }
+
+                      final companyDetailsAsync = ref.watch(companyDetailsProvider(companyId!));
+
+                      return companyDetailsAsync.when(
+                        data: (companyDetails) {
+                          final jobsData = companyDetails.jobs;
+
+                          if (jobsData.isEmpty) {
+                            return const Padding(
+                              padding: EdgeInsets.all(24.0),
+                              child: Text(
+                                'Công ty hiện không có việc làm nào',
+                                style: TextStyle(color: AppColors.textSecondary),
+                              ),
+                            );
+                          }
+
+                          return Column(
+                            children: jobsData.take(3).map((jobJson) {
+                              final job = Job.fromJson(jobJson);
+
+                              String salaryDisplay = 'Thỏa thuận';
+                              if (job.salaryMin != null && job.salaryMax != null) {
+                                final minInMillions = (job.salaryMin! / 1000000).toStringAsFixed(0);
+                                final maxInMillions = (job.salaryMax! / 1000000).toStringAsFixed(0);
+                                salaryDisplay = '$minInMillions - $maxInMillions triệu /tháng';
+                              } else if (job.salaryRange != null) {
+                                salaryDisplay = job.salaryRange!;
+                              }
+
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: CardItemJob(
+                                  titleJob: job.title,
+                                  conpanyJob: companyName,
+                                  location: job.location,
+                                  workLocation: job.workLocation ?? 'Office',
+                                  workingTime: job.jobType ?? 'Full Time',
+                                  workSalary: salaryDisplay,
+                                  logoCompany: logoAsset,
+                                  onTap: () {
+                                    Navigator.pushNamed(
+                                      context,
+                                      '/job-detail',
+                                      arguments: job.jobId,
+                                    );
+                                  },
+                                ),
+                              );
+                            }).toList(),
+                          );
+                        },
+                        loading: () => const Padding(
+                          padding: EdgeInsets.all(24.0),
+                          child: CircularProgressIndicator(color: AppColors.primary),
+                        ),
+                        error: (error, stack) => Padding(
+                          padding: const EdgeInsets.all(24.0),
+                          child: Column(
+                            children: [
+                              Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
+                              const SizedBox(height: 12),
+                              Text(
+                                'Không thể tải thông tin công ty',
+                                style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                              ),
+                              const SizedBox(height: 8),
+                              TextButton(
+                                onPressed: () => ref.invalidate(companyDetailsProvider(companyId!)),
+                                child: const Text('Thử lại'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   ),
                   const SizedBox(height: 24),
                   

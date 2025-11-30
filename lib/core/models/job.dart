@@ -9,6 +9,8 @@ class Job {
   final String? jobType;
   final String? workLocation;
   final String? salaryRange;
+  final int? salaryMin;
+  final int? salaryMax;
   final String? workTime;
   final ExperienceRequired? experienceRequired;
   final JobInformation? jobInformation;
@@ -27,6 +29,8 @@ class Job {
     this.jobType,
     this.workLocation,
     this.salaryRange,
+    this.salaryMin,
+    this.salaryMax,
     this.workTime,
     this.experienceRequired,
     this.jobInformation,
@@ -49,6 +53,8 @@ class Job {
       jobType: json['jobType'],
       workLocation: json['workLocation'],
       salaryRange: json['salaryRange'],
+      salaryMin: json['salaryMin'],
+      salaryMax: json['salaryMax'],
       workTime: json['workTime'],
       experienceRequired: json['experience'] != null
           ? ExperienceRequired.fromJson(json['experience'])

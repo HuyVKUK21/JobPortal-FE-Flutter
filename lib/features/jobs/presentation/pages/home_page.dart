@@ -5,11 +5,11 @@ import 'package:flutter_application_1/core/constants/app_dimensions.dart';
 import 'package:flutter_application_1/core/constants/app_strings.dart';
 import 'package:flutter_application_1/core/utils/app_screen_layout.dart';
 import 'package:flutter_application_1/core/utils/size_config.dart';
-import 'package:flutter_application_1/presentations/widgets/banner_home_page.dart';
+import 'package:flutter_application_1/presentations/widgets/sponsored_banner_carousel.dart';
 import 'package:flutter_application_1/presentations/widgets/card_item_job.dart';
 import 'package:flutter_application_1/presentations/widgets/header_section.dart';
 import 'package:flutter_application_1/presentations/widgets/job_category.dart';
-import 'package:flutter_application_1/presentations/widgets/search_box.dart';
+import 'package:flutter_application_1/presentations/widgets/enhanced_search_box.dart';
 import 'package:flutter_application_1/presentations/widgets/title_category_header.dart';
 import 'package:flutter_application_1/presentations/widgets/featured_company_card.dart';
 import 'package:flutter_application_1/presentations/pages/company_detail_page.dart';
@@ -22,6 +22,9 @@ import 'package:flutter_application_1/features/salary_calculator/presentation/pa
 import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
 import 'package:flutter_application_1/core/constants/lottie_assets.dart';
+import 'package:flutter_application_1/presentations/pages/job_dashboard_page.dart';
+import 'package:flutter_application_1/presentations/widgets/job_type_distribution_card.dart';
+import 'package:flutter_application_1/core/providers/company_provider.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -157,13 +160,177 @@ class _HomePageState extends ConsumerState<HomePage> {
               },
             ),
             const SizedBox(height: AppDimensions.space),
-            const SearchBox(),
+            const EnhancedSearchBox(),
             const SizedBox(height: AppDimensions.space),
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    const BannerHomePage(),
+                    const SponsoredBannerCarousel(),
+                    const SizedBox(height: 24),
+                    
+                    // Quick Access Cards Grid
+                    Row(
+                      children: [
+                        // Dashboard Card
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const JobDashboardPage(),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.only(left: 4, right: 6),
+                              padding: const EdgeInsets.all(16),
+                              height: 140,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    AppColors.primary,
+                                    AppColors.primary.withOpacity(0.8),
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.primary.withOpacity(0.3),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Icon(
+                                      Icons.analytics_outlined,
+                                      color: Colors.white,
+                                      size: 28,
+                                    ),
+                                  ),
+                                  const Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Thống kê',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      SizedBox(height: 4),
+                                      Text(
+                                        'Xu hướng việc làm',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        
+                        // Salary Calculator Card
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const SalaryCalculatorPageRefactored(),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.only(left: 6, right: 4),
+                              padding: const EdgeInsets.all(16),
+                              height: 140,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    const Color(0xFF26C281),
+                                    const Color(0xFF26C281).withOpacity(0.8),
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFF26C281).withOpacity(0.3),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Icon(
+                                      Icons.calculate_outlined,
+                                      color: Colors.white,
+                                      size: 28,
+                                    ),
+                                  ),
+                                  const Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Tính lương',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      SizedBox(height: 4),
+                                      Text(
+                                        'Công cụ tính toán',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    
+                    // Job Type Distribution Chart
+                    const JobTypeDistributionCard(),
                     const SizedBox(height: 24),
                     
                     // Featured Companies Section
@@ -179,109 +346,100 @@ class _HomePageState extends ConsumerState<HomePage> {
                       titleCategoryHeader: 'Thương hiệu lớn tiêu biểu',
                     ),
                     const SizedBox(height: 16),
-                    SizedBox(
-                      height: 280,
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        children: [
-                          FeaturedCompanyCard(
-                            companyName: 'Ngân Hàng TMCP Việt Nam Thịnh Vượng (VPBank)',
-                            category: 'Ngân hàng',
-                            logoAsset: 'assets/logo_lutech.png',
-                            salaryBadge: '120+ việc',
-                            isFollowing: false,
-                            onFollowTap: () {},
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const CompanyDetailPage(
-                                    companyName: 'Ngân Hàng TMCP Việt Nam Thịnh Vượng (VPBank)',
-                                    category: 'Ngân hàng',
-                                    logoAsset: 'assets/logo_lutech.png',
-                                    location: 'Hà Nội, Việt Nam',
-                                    employeeCount: 5000,
-                                    website: 'www.vpbank.com.vn',
-                                  ),
+                    
+                    // Featured Companies List with API
+                    Consumer(
+                      builder: (context, ref, child) {
+                        final companiesAsync = ref.watch(featuredCompaniesProvider);
+                        
+                        return companiesAsync.when(
+                          data: (companies) {
+                            if (companies.isEmpty) {
+                              return const SizedBox(
+                                height: 280,
+                                child: Center(
+                                  child: Text('Không có công ty nào'),
                                 ),
                               );
-                            },
+                            }
+                            
+                            return SizedBox(
+                              height: 280,
+                              child: ListView.separated(
+                                scrollDirection: Axis.horizontal,
+                                padding: const EdgeInsets.symmetric(horizontal: 4),
+                                itemCount: companies.length,
+                                separatorBuilder: (context, index) => const SizedBox(width: 12),
+                                itemBuilder: (context, index) {
+                                  final company = companies[index];
+                                  return FeaturedCompanyCard(
+                                    companyName: company.name,
+                                    category: company.industry,
+                                    logoAsset: company.logo ?? 'assets/logo_lutech.png',
+                                    salaryBadge: '${company.totalJobs}+ việc',
+                                    isFollowing: false,
+                                    onFollowTap: () {},
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => CompanyDetailPage(
+                                            companyId: company.id,
+                                            companyName: company.name,
+                                            category: company.industry,
+                                            logoAsset: company.logo ?? 'assets/logo_lutech.png',
+                                            location: company.location,
+                                            employeeCount: company.employeeCount ?? 0,
+                                            website: company.website ?? '',
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                            );
+                          },
+                          loading: () => SizedBox(
+                            height: 280,
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                color: AppColors.primary,
+                              ),
+                            ),
                           ),
-                          const SizedBox(width: 12),
-                          FeaturedCompanyCard(
-                            companyName: 'NGÂN HÀNG THƯƠNG MẠI CỔ PHẦN KỸ THƯƠNG VIỆT NAM',
-                            category: 'Ngân hàng',
-                            logoAsset: 'assets/logo_google.png',
-                            salaryBadge: '150+ việc',
-                            isFollowing: false,
-                            onFollowTap: () {},
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const CompanyDetailPage(
-                                    companyName: 'NGÂN HÀNG THƯƠNG MẠI CỔ PHẦN KỸ THƯƠNG VIỆT NAM',
-                                    category: 'Ngân hàng',
-                                    logoAsset: 'assets/logo_google.png',
-                                    location: 'TP. Hồ Chí Minh, Việt Nam',
-                                    employeeCount: 8000,
-                                    website: 'www.techcombank.com.vn',
+                          error: (error, stack) => SizedBox(
+                            height: 280,
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.error_outline,
+                                    size: 48,
+                                    color: Colors.red[300],
                                   ),
-                                ),
-                              );
-                            },
-                          ),
-                          const SizedBox(width: 12),
-                          FeaturedCompanyCard(
-                            companyName: 'CÔNG TY CỔ PHẦN TẬP ĐOÀN TRƯỜNG HẢI',
-                            category: 'Sản xuất',
-                            logoAsset: 'assets/logo_lutech.png',
-                            salaryBadge: '80+ việc',
-                            isFollowing: false,
-                            onFollowTap: () {},
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const CompanyDetailPage(
-                                    companyName: 'CÔNG TY CỔ PHẦN TẬP ĐOÀN TRƯỜNG HẢI',
-                                    category: 'Sản xuất',
-                                    logoAsset: 'assets/logo_lutech.png',
-                                    location: 'Quảng Nam, Việt Nam',
-                                    employeeCount: 15000,
-                                    website: 'www.thaco.com.vn',
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'Không thể tải danh sách công ty',
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 14,
+                                    ),
                                   ),
-                                ),
-                              );
-                            },
-                          ),
-                          const SizedBox(width: 12),
-                          FeaturedCompanyCard(
-                            companyName: 'TẬP ĐOÀN CÔNG NGHIỆP - VIỄN THÔNG QUÂN ĐỘI',
-                            category: 'Viễn thông',
-                            logoAsset: 'assets/logo_google.png',
-                            salaryBadge: '200+ việc',
-                            isFollowing: true,
-                            onFollowTap: () {},
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const CompanyDetailPage(
-                                    companyName: 'TẬP ĐOÀN CÔNG NGHIỆP - VIỄN THÔNG QUÂN ĐỘI',
-                                    category: 'Viễn thông',
-                                    logoAsset: 'assets/logo_google.png',
-                                    location: 'Hà Nội, Việt Nam',
-                                    employeeCount: 20000,
-                                    website: 'www.viettel.com.vn',
+                                  const SizedBox(height: 8),
+                                  TextButton(
+                                    onPressed: () {
+                                      ref.invalidate(featuredCompaniesProvider);
+                                    },
+                                    child: const Text('Thử lại'),
                                   ),
-                                ),
-                              );
-                            },
+                                ],
+                              ),
+                            ),
                           ),
-                        ],
-                      ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 24),
                     

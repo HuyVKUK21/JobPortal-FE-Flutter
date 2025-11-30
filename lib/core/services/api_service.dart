@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../constants/api_constants.dart';
 import '../models/api_response.dart';
 import '../models/user.dart';
@@ -1029,4 +1030,156 @@ class ApiService {
       );
     }
   }
+
+  // Generic HTTP Methods for flexible API calls
+  Future<Map<String, dynamic>> get(
+    String endpoint, {
+    Map<String, dynamic>? queryParameters,
+    bool requiresAuth = false,
+  }) async {
+    try {
+      var uri = Uri.parse('${ApiConstants.baseUrl}$endpoint');
+      if (queryParameters != null && queryParameters.isNotEmpty) {
+        uri = uri.replace(queryParameters: queryParameters);
+      }
+
+      if (kDebugMode) print('🚀 GET Request: $uri');
+
+      final response = await http.get(
+        uri,
+        headers: requiresAuth ? _headers : ApiConstants.defaultHeaders,
+      );
+
+      if (kDebugMode) {
+        print('📡 Response Status: ${response.statusCode}');
+        print('📄 Response Body: ${response.body}');
+      }
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception('HTTP ${response.statusCode}: ${response.body}');
+      }
+    } catch (e) {
+      if (kDebugMode) print('❌ GET Error: $e');
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> post(
+    String endpoint, {
+    Map<String, dynamic>? body,
+    Map<String, dynamic>? queryParameters,
+    bool requiresAuth = false,
+  }) async {
+    try {
+      var uri = Uri.parse('${ApiConstants.baseUrl}$endpoint');
+      if (queryParameters != null && queryParameters.isNotEmpty) {
+        uri = uri.replace(queryParameters: queryParameters);
+      }
+
+      if (kDebugMode) {
+        print('🚀 POST Request: $uri');
+        if (body != null) print('📋 Body: ${jsonEncode(body)}');
+      }
+
+      final response = await http.post(
+        uri,
+        headers: requiresAuth ? _headers : ApiConstants.defaultHeaders,
+        body: body != null ? jsonEncode(body) : null,
+      );
+
+      if (kDebugMode) {
+        print('📡 Response Status: ${response.statusCode}');
+        print('📄 Response Body: ${response.body}');
+      }
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception('HTTP ${response.statusCode}: ${response.body}');
+      }
+    } catch (e) {
+      if (kDebugMode) print('❌ POST Error: $e');
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> put(
+    String endpoint, {
+    Map<String, dynamic>? body,
+    Map<String, dynamic>? queryParameters,
+    bool requiresAuth = false,
+  }) async {
+    try {
+      var uri = Uri.parse('${ApiConstants.baseUrl}$endpoint');
+      if (queryParameters != null && queryParameters.isNotEmpty) {
+        uri = uri.replace(queryParameters: queryParameters);
+      }
+
+      if (kDebugMode) {
+        print('🚀 PUT Request: $uri');
+        if (body != null) print('📋 Body: ${jsonEncode(body)}');
+      }
+
+      final response = await http.put(
+        uri,
+        headers: requiresAuth ? _headers : ApiConstants.defaultHeaders,
+        body: body != null ? jsonEncode(body) : null,
+      );
+
+      if (kDebugMode) {
+        print('📡 Response Status: ${response.statusCode}');
+        print('📄 Response Body: ${response.body}');
+      }
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception('HTTP ${response.statusCode}: ${response.body}');
+      }
+    } catch (e) {
+      if (kDebugMode) print('❌ PUT Error: $e');
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> delete(
+    String endpoint, {
+    Map<String, dynamic>? queryParameters,
+    bool requiresAuth = false,
+  }) async {
+    try {
+      var uri = Uri.parse('${ApiConstants.baseUrl}$endpoint');
+      if (queryParameters != null && queryParameters.isNotEmpty) {
+        uri = uri.replace(queryParameters: queryParameters);
+      }
+
+      if (kDebugMode) print('🚀 DELETE Request: $uri');
+
+      final response = await http.delete(
+        uri,
+        headers: requiresAuth ? _headers : ApiConstants.defaultHeaders,
+      );
+
+      if (kDebugMode) {
+        print('📡 Response Status: ${response.statusCode}');
+        print('📄 Response Body: ${response.body}');
+      }
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception('HTTP ${response.statusCode}: ${response.body}');
+      }
+    } catch (e) {
+      if (kDebugMode) print('❌ DELETE Error: $e');
+      rethrow;
+    }
+  }
 }
+
+// Riverpod Provider for ApiService
+final apiServiceProvider = Provider<ApiService>((ref) {
+  return ApiService();
+});
