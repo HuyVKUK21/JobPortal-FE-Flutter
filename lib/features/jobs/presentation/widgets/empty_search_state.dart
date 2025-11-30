@@ -16,8 +16,8 @@ class EmptySearchState extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               // Illustration
-              Lottie.network(
-                LottieAssets.emptySearch,
+              Lottie.asset(
+                LottieAssets.noResultFound,
                 width: 250,
                 height: 250,
                 fit: BoxFit.contain,

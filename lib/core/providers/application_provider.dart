@@ -44,6 +44,7 @@ class ApplicationNotifier extends StateNotifier<ApplicationState> {
 
   Future<void> applyForJob({
     required int jobId,
+    required int seekerId,
     required String coverLetter,
     String? resume,
   }) async {
@@ -59,13 +60,14 @@ class ApplicationNotifier extends StateNotifier<ApplicationState> {
       final response = await _apiService.applyForJob(request);
 
       if (response.isSuccess && response.data != null) {
-        // Add to applications list
-        final newApplications = [...state.applications, response.data!];
+        // Successfully applied - refresh list to get complete data
         state = state.copyWith(
-          applications: newApplications,
           isLoading: false,
           error: null,
         );
+        
+        // Refresh applications list from server to get jobTitle, company, etc.
+        await getMyApplications(seekerId);
       } else {
         state = state.copyWith(
           isLoading: false,

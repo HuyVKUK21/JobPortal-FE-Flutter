@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_application_1/core/constants/app_colors.dart';
 import 'package:flutter_application_1/core/providers/auth_provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_application_1/presentations/pages/settings/deactivate_account_screen.dart';
+import 'package:flutter_application_1/core/utils/dialog_helpers.dart';
+import 'package:flutter_application_1/features/profile/presentation/pages/profile_edit_page.dart';
 
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
@@ -116,7 +119,9 @@ class ProfilePage extends ConsumerWidget {
               _buildMenuItem(
                 icon: Icons.work_outline,
                 title: 'Trạng thái tìm việc',
-                onTap: () {},
+                onTap: () {
+                  context.pushNamed('jobSeekingStatus');
+                },
               ),
               const SizedBox(height: 24),
 
@@ -126,12 +131,21 @@ class ProfilePage extends ConsumerWidget {
               _buildMenuItem(
                 icon: Icons.person_outline,
                 title: 'Thông tin cá nhân',
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ProfileEditPage(),
+                    ),
+                  );
+                },
               ),
               _buildMenuItem(
                 icon: Icons.link,
                 title: 'Tài khoản liên kết',
-                onTap: () {},
+                onTap: () {
+                  context.pushNamed('linkedAccounts');
+                },
               ),
               const SizedBox(height: 24),
 
@@ -141,7 +155,9 @@ class ProfilePage extends ConsumerWidget {
               _buildMenuItem(
                 icon: Icons.notifications_outlined,
                 title: 'Thông báo',
-                onTap: () {},
+                onTap: () {
+                  context.pushNamed('notificationSettings');
+                },
               ),
               _buildMenuItem(
                 icon: Icons.description_outlined,
@@ -156,7 +172,9 @@ class ProfilePage extends ConsumerWidget {
               _buildMenuItem(
                 icon: Icons.security,
                 title: 'Bảo mật',
-                onTap: () {},
+                onTap: () {
+                  context.pushNamed('securitySettings');
+                },
               ),
               _buildMenuItem(
                 icon: Icons.language,
@@ -168,7 +186,9 @@ class ProfilePage extends ConsumerWidget {
                     color: AppColors.textSecondary,
                   ),
                 ),
-                onTap: () {},
+                onTap: () {
+                  context.pushNamed('languageSettings');
+                },
               ),
               _buildMenuItem(
                 icon: Icons.dark_mode_outlined,
@@ -187,7 +207,9 @@ class ProfilePage extends ConsumerWidget {
               _buildMenuItem(
                 icon: Icons.help_outline,
                 title: 'Trung tâm trợ giúp',
-                onTap: () {},
+                onTap: () {
+                  context.pushNamed('helpCenter');
+                },
               ),
               _buildMenuItem(
                 icon: Icons.person_add_outlined,
@@ -227,7 +249,9 @@ class ProfilePage extends ConsumerWidget {
                 title: 'Vô hiệu hóa tài khoản',
                 titleColor: Colors.red,
                 iconColor: Colors.red,
-                onTap: () {},
+                onTap: () {
+                  context.pushNamed('deactivateAccount');
+                },
               ),
               _buildMenuItem(
                 icon: Icons.logout,
@@ -235,13 +259,17 @@ class ProfilePage extends ConsumerWidget {
                 titleColor: Colors.red,
                 iconColor: Colors.red,
                 onTap: () {
-                  ref.read(authProvider.notifier).logout();
+                  DialogHelpers.showLogoutDialog(context, () {
+                    ref.read(authProvider.notifier).logout();
+                  });
                 },
               ),
               const SizedBox(height: 32),
+              // Extra padding for bottom nav bar
+              const SizedBox(height: 80),
             ],
           ),
-        
+
       ),
     );
   }

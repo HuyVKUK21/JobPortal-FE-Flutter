@@ -20,8 +20,8 @@ class ProfilePlaceholderPage extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Lottie.network(
-                  LottieAssets.userProfile,
+                Lottie.asset(
+                  LottieAssets.noResultFound,
                   width: 200,
                   height: 200,
                   fit: BoxFit.contain,

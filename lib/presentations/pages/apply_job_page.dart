@@ -5,6 +5,7 @@ import 'package:flutter_application_1/core/constants/app_colors.dart';
 import 'package:flutter_application_1/core/constants/app_dimensions.dart';
 import 'package:flutter_application_1/core/models/application_request.dart';
 import 'package:flutter_application_1/core/providers/auth_provider.dart';
+import 'package:flutter_application_1/core/providers/application_provider.dart';
 import 'package:flutter_application_1/core/services/api_service.dart';
 import 'package:flutter_application_1/core/constants/lottie_assets.dart';
 import 'package:go_router/go_router.dart';
@@ -149,9 +150,9 @@ class _ApplyJobPageState extends ConsumerState<ApplyJobPage> {
     });
 
     try {
-      // Get the current auth state to ensure we have a token
+      // Get the current auth state
       final authState = ref.read(authProvider);
-      if (authState.token == null) {
+      if (authState.token == null || authState.user == null) {
         setState(() {
           _isLoading = false;
           _error = 'Vui lòng đăng nhập để ứng tuyển việc làm';
@@ -163,82 +164,84 @@ class _ApplyJobPageState extends ConsumerState<ApplyJobPage> {
       final apiService = ApiService();
       apiService.setToken(authState.token!);
 
-      final request = ApplyJobRequest(
+      // Use provider to apply for job - this will auto-refresh applications list
+      await ref.read(applicationProvider.notifier).applyForJob(
         jobId: widget.jobId,
+        seekerId: authState.user!.userId,
         coverLetter: _motivationController.text.trim(),
         resume: _uploadedFileName != null ? 'uploaded_cv_$_uploadedFileName' : null,
       );
 
-      final response = await apiService.applyForJob(request);
+      // Check if there was an error
+      final error = ref.read(applicationErrorProvider);
+      if (error != null) {
+        setState(() {
+          _error = error;
+        });
+        return;
+      }
 
-      if (response.isSuccess) {
-        if (mounted) {
-        if (mounted) {
-          await showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => Dialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Lottie.network(
-                      LottieAssets.successCheck,
-                      width: 150,
-                      height: 150,
-                      repeat: false,
+      // Success - show dialog
+      if (mounted) {
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Lottie.asset(
+                    LottieAssets.success,
+                    width: 150,
+                    height: 150,
+                    repeat: false,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Nộp đơn thành công!',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
                     ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Nộp đơn thành công!',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Hồ sơ của bạn đã được gửi đến nhà tuyển dụng.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
                     ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Hồ sơ của bạn đã được gửi đến nhà tuyển dụng.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).pop(); // Close dialog
-                          context.pop(); // Go back
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(); // Close dialog
+                        context.pop(); // Go back
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Text('Đóng'),
                       ),
+                      child: const Text('Đóng'),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-          );
-        }
-        }
-      } else {
-        setState(() {
-          _error = response.message;
-        });
+          ),
+        );
       }
     } catch (e) {
       setState(() {
@@ -257,9 +260,9 @@ class _ApplyJobPageState extends ConsumerState<ApplyJobPage> {
     final isTablet = screenWidth > 600;
     
     return Scaffold(
-      backgroundColor: AppColors.backgroundGrey,
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: Colors.white,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
@@ -276,68 +279,78 @@ class _ApplyJobPageState extends ConsumerState<ApplyJobPage> {
         ),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: isTablet ? 40 : 20,
-            vertical: 20,
-          ),
-          child: Form(
-            key: _formKey,
+      body: Stack(
+        children: [
+          // Main scrollable content
+          SingleChildScrollView(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Job Info Card
+                // Divider
                 Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: AppColors.primary.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(8),
+                  height: 1,
+                  color: AppColors.borderLight.withValues(alpha: 0.3),
+                ),
+                
+                Padding(
+                  padding: EdgeInsets.all(isTablet ? 32 : 20),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Job Info Card
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                AppColors.primary.withValues(alpha: 0.05),
+                                AppColors.primary.withValues(alpha: 0.02),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
                             ),
-                            child: Icon(
-                              Icons.work_outline,
-                              color: AppColors.primary,
-                              size: 20,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: AppColors.primary.withValues(alpha: 0.1),
+                              width: 1,
                             ),
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  widget.jobTitle,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF2C3E50),
-                                  ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary,
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  widget.companyName,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey[600],
+                                child: const Icon(
+                                  Icons.work_outline,
+                                  color: Colors.white,
+                                  size: 24,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      widget.jobTitle,
+                                      style: const TextStyle(
+                                        fontSize: 17,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.textPrimary,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      widget.companyName,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: AppColors.textSecondary,
+                                        fontWeight: FontWeight.w500,
                                   ),
                                 ),
                               ],
@@ -345,160 +358,179 @@ class _ApplyJobPageState extends ConsumerState<ApplyJobPage> {
                           ),
                         ],
                       ),
-                    ],
-                  ),
-                ),
-                
-                const SizedBox(height: 24),
-                
-                // Form Fields
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Full Name field
-                      _buildFormField(
-                        label: 'Họ và tên',
-                        hint: 'Nhập họ và tên đầy đủ của bạn',
-                        controller: _fullNameController,
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Vui lòng nhập họ tên';
-                          }
-                          return null;
-                        },
-                      ),
-                      
-                      const SizedBox(height: 24),
-                      
-                      // Email field
-                      _buildFormField(
-                        label: 'Email',
-                        hint: 'Nhập địa chỉ email của bạn',
-                        controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Vui lòng nhập email';
-                          }
-                          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-                            return 'Email không hợp lệ';
-                          }
-                          return null;
-                        },
-                      ),
-                      
-                      const SizedBox(height: 24),
-                      
-                      // Upload CV section
-                      _buildUploadSection(),
-                      
-                      const SizedBox(height: 24),
-                      
-                      // Motivation Letter field
-                      _buildFormField(
-                        label: 'Thư động lực',
-                        hint: 'Viết thư động lực của bạn tại đây...',
-                        controller: _motivationController,
-                        maxLines: 5,
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Vui lòng nhập thư động lực';
-                          }
-                          if (value.trim().length < 50) {
-                            return 'Thư động lực phải có ít nhất 50 ký tự';
-                          }
-                          return null;
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                
-                const SizedBox(height: 24),
-                
-                // Error message
-                if (_error != null)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    margin: const EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.red[50],
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.red[200]!),
                     ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.error_outline, color: Colors.red[600], size: 20),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            _error!,
-                            style: TextStyle(
-                              color: Colors.red[600],
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
+                    
+                    const SizedBox(height: 28),
+                    
+                    // Section Title
+                    const Text(
+                      'Thông tin ứng tuyển',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 20),
+                    
+                    // Full Name field
+                    _buildFormField(
+                      label: 'Họ và tên',
+                      hint: 'Nhập họ và tên đầy đủ của bạn',
+                      controller: _fullNameController,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Vui lòng nhập họ tên';
+                        }
+                        return null;
+                      },
+                    ),
+                    
+                    const SizedBox(height: 20),
+                    
+                    // Email field
+                    _buildFormField(
+                      label: 'Email',
+                      hint: 'Nhập địa chỉ email của bạn',
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Vui lòng nhập email';
+                        }
+                        if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                          return 'Email không hợp lệ';
+                        }
+                        return null;
+                      },
+                    ),
+                    
+                    const SizedBox(height: 20),
+                    
+                    // Upload CV section
+                    _buildUploadSection(),
+                    
+                    const SizedBox(height: 20),
+                    
+                    // Cover Letter field
+                    _buildFormField(
+                      label: 'Thư xin việc',
+                      hint: 'Giới thiệu bản thân, kinh nghiệm và lý do bạn phù hợp với vị trí này...',
+                      controller: _motivationController,
+                      maxLines: 6,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Vui lòng nhập thư xin việc';
+                        }
+                        if (value.trim().length < 50) {
+                          return 'Thư xin việc phải có ít nhất 50 ký tự';
+                        }
+                        return null;
+                      },
+                    ),
+                    
+                    const SizedBox(height: 24),
+                    
+                    // Error message
+                    if (_error != null)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        margin: const EdgeInsets.only(bottom: 20),
+                        decoration: BoxDecoration(
+                          color: Colors.red[50],
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.red[200]!),
                         ),
-                      ],
-                    ),
-                  ),
-                
-                // Submit button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _submitApplication,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        child: Row(
+                          children: [
+                            Icon(Icons.error_outline, color: Colors.red[600], size: 20),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                _error!,
+                                style: TextStyle(
+                                  color: Colors.red[700],
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      elevation: 0,
-                      shadowColor: Colors.transparent,
-                    ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                            ),
-                          )
-                        : const Text(
-                            'Gửi đơn ứng tuyển',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                  ),
+                    
+                    // Add bottom padding to prevent content from being hidden under button
+                    const SizedBox(height: 100),
+                    
+                    const SizedBox(height: 8),
+                  ],
                 ),
-                
-                const SizedBox(height: 24),
+              ),
+            ),
+          ],
+        ),
+      ),
+      
+      // Fixed Submit Button at bottom
+      Positioned(
+        left: 0,
+        right: 0,
+        bottom: 0,
+        child: Container(
+          padding: EdgeInsets.all(isTablet ? 32 : 20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.white.withOpacity(0.0),
+                Colors.white.withOpacity(0.9),
+                Colors.white,
               ],
+            ),
+          ),
+          child: SafeArea(
+            top: false,
+            child: SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : _submitApplication,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 2,
+                  shadowColor: Colors.transparent,
+                ),
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 22,
+                        width: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : const Text(
+                        'Gửi đơn ứng tuyển',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+              ),
             ),
           ),
         ),
       ),
-    );
+    ],
+  ),
+);
   }
 
   Widget _buildFormField({
@@ -592,10 +624,10 @@ class _ApplyJobPageState extends ConsumerState<ApplyJobPage> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Lottie.network(
-                              LottieAssets.loadingSpinner,
-                              width: 60,
-                              height: 60,
+                            Lottie.asset(
+                              LottieAssets.loading,
+                              width: 80,
+                              height: 80,
                             ),
                             const SizedBox(height: 8),
                             const Text(

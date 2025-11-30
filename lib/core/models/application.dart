@@ -195,34 +195,52 @@ class InterviewRequest {
 class ApplicationResponse {
   final int applicationId;
   final int jobId;
+  final String? jobTitle;
   final int seekerId;
+  final String? seekerFirstName;
+  final String? seekerLastName;
+  final String? seekerEmail;
+  final String? seekerPhone;
   final String status;
   final String appliedAt;
   final String? coverLetter;
   final String? resume;
   final Job? job;
+  final Company? company;
 
   ApplicationResponse({
     required this.applicationId,
     required this.jobId,
+    this.jobTitle,
     required this.seekerId,
+    this.seekerFirstName,
+    this.seekerLastName,
+    this.seekerEmail,
+    this.seekerPhone,
     required this.status,
     required this.appliedAt,
     this.coverLetter,
     this.resume,
     this.job,
+    this.company,
   });
 
   factory ApplicationResponse.fromJson(Map<String, dynamic> json) {
     return ApplicationResponse(
       applicationId: json['applicationId'] ?? 0,
       jobId: json['jobId'] ?? 0,
+      jobTitle: json['jobTitle'],
       seekerId: json['seekerId'] ?? 0,
+      seekerFirstName: json['seekerFirstName'],
+      seekerLastName: json['seekerLastName'],
+      seekerEmail: json['seekerEmail'],
+      seekerPhone: json['seekerPhone'],
       status: json['status'] ?? '',
       appliedAt: json['appliedAt'] ?? '',
       coverLetter: json['coverLetter'],
       resume: json['resume'],
       job: json['job'] != null ? Job.fromJson(json['job']) : null,
+      company: json['company'] != null ? Company.fromJson(json['company']) : null,
     );
   }
 
@@ -230,12 +248,18 @@ class ApplicationResponse {
     return {
       'applicationId': applicationId,
       'jobId': jobId,
+      if (jobTitle != null) 'jobTitle': jobTitle,
       'seekerId': seekerId,
+      if (seekerFirstName != null) 'seekerFirstName': seekerFirstName,
+      if (seekerLastName != null) 'seekerLastName': seekerLastName,
+      if (seekerEmail != null) 'seekerEmail': seekerEmail,
+      if (seekerPhone != null) 'seekerPhone': seekerPhone,
       'status': status,
       'appliedAt': appliedAt,
       if (coverLetter != null) 'coverLetter': coverLetter,
       if (resume != null) 'resume': resume,
       if (job != null) 'job': job!.toJson(),
+      if (company != null) 'company': company!.toJson(),
     };
   }
 }

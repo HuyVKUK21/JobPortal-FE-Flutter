@@ -46,118 +46,110 @@ class BottomNavBar extends StatelessWidget {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: List.generate(items.length, (index) {
-          final item = items[index];
-          final isSelected = index == currentIndex;
-          final hasNotification = item['hasNotification'] as bool;
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: List.generate(items.length, (index) {
+            final item = items[index];
+            final isSelected = index == currentIndex;
+            final hasNotification = item['hasNotification'] as bool;
 
-          return GestureDetector(
-            onTap: () => onTap(index),
-            behavior: HitTestBehavior.opaque,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-              padding: EdgeInsets.symmetric(
-                horizontal: isSelected ? 16 : 12,
-                vertical: 8,
-              ),
-              decoration: BoxDecoration(
-                gradient: isSelected ? AppGradients.activeItemBackground : null,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Stack(
-                    clipBehavior: Clip.none,
+            return Flexible(
+              child: GestureDetector(
+                onTap: () => onTap(index),
+                behavior: HitTestBehavior.opaque,
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isSelected ? 12 : 8,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: isSelected ? AppGradients.activeItemBackground : null,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 300),
-                        transitionBuilder: (child, animation) {
-                          return ScaleTransition(
-                            scale: animation,
-                            child: child,
-                          );
-                        },
-                        child: Icon(
-                          isSelected 
-                              ? item['activeIcon'] as IconData
-                              : item['icon'] as IconData,
-                          key: ValueKey(isSelected),
-                          color: isSelected
-                              ? AppColors.primary
-                              : Colors.grey[600],
-                          size: isSelected ? 26 : 24,
-                        ),
-                      ),
-                      if (hasNotification && !isSelected)
-                        Positioned(
-                          right: -4,
-                          top: -4,
-                          child: Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: AppColors.error,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Colors.white,
-                                width: 1.5,
-                              ),
-                            ),
+                      Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Icon(
+                            isSelected
+                                ? item['activeIcon'] as IconData
+                                : item['icon'] as IconData,
+                            color: isSelected
+                                ? AppColors.primary
+                                : Colors.grey[600],
+                            size: isSelected ? 26 : 24,
                           ),
-                        ),
-                      if (hasNotification && isSelected)
-                        Positioned(
-                          right: -6,
-                          top: -6,
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
-                              ),
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Colors.white,
-                                width: 2,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.error.withOpacity(0.4),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
+                          if (hasNotification && !isSelected)
+                            Positioned(
+                              right: -4,
+                              top: -4,
+                              child: Container(
+                                width: 8,
+                                height: 8,
+                                decoration: BoxDecoration(
+                                  color: AppColors.error,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 1.5,
+                                  ),
                                 ),
-                              ],
-                            ),
-                            child: const Text(
-                              '3',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 9,
-                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                          ),
+                          if (hasNotification && isSelected)
+                            Positioned(
+                              right: -6,
+                              top: -6,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
+                                  ),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 2,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.error.withOpacity(0.4),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: const Text(
+                                  '3',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        item['label'] as String,
+                        style: (isSelected ? AppTextStyles.navLabel : AppTextStyles.navLabelInactive).copyWith(
+                          color: isSelected ? AppColors.primary : Colors.grey[600],
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 6),
-                  AnimatedDefaultTextStyle(
-                    duration: const Duration(milliseconds: 200),
-                    style: (isSelected ? AppTextStyles.navLabel : AppTextStyles.navLabelInactive).copyWith(
-                      color: isSelected ? AppColors.primary : Colors.grey[600],
-                    ),
-                    child: Text(item['label'] as String),
-                  ),
-                ],
+                ),
               ),
-            ),
-          );
-        }),
+            );
+          }),
+        ),
       ),
     );
   }

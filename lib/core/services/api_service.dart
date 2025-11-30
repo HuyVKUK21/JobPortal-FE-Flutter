@@ -7,6 +7,7 @@ import '../models/user.dart';
 import '../models/job.dart';
 import '../models/application.dart';
 import '../models/application_request.dart';
+import '../models/profile.dart';
 
 class ApiService {
   static final ApiService _instance = ApiService._internal();
@@ -855,12 +856,12 @@ class ApiService {
   /// Get my applications
   Future<ApiResponse<List<ApplicationResponse>>> getMyApplications(int seekerId) async {
     try {
-      final url = '${ApiConstants.baseUrl}${ApiConstants.myApplicationsEndpoint}/$seekerId';
+      final url = '${ApiConstants.baseUrl}${ApiConstants.myApplicationsEndpoint}';
       if (kDebugMode) print('🚀 My Applications API: $url');
       
       final response = await http.get(
         Uri.parse(url),
-        headers: ApiConstants.defaultHeaders,
+        headers: _headers,
       );
 
       if (kDebugMode) {
@@ -938,7 +939,7 @@ class ApiService {
       
       final response = await http.delete(
         Uri.parse(url),
-        headers: ApiConstants.defaultHeaders,
+        headers: _headers,
       );
 
       if (kDebugMode) {
@@ -955,6 +956,73 @@ class ApiService {
     } catch (e) {
       if (kDebugMode) print('❌ Cancel Application Error: $e');
       return ApiResponse<void>(
+        status: 500,
+        message: 'Network error: $e',
+        error: e.toString(),
+      );
+    }
+  }
+
+  // Profile APIs
+  /// Get current user's profile
+  Future<ApiResponse<ProfileResponse>> getMyProfile() async {
+    try {
+      final url = '${ApiConstants.baseUrl}${ApiConstants.jobSeekerProfileEndpoint}';
+      if (kDebugMode) print('🚀 Get Profile API: $url');
+      
+      final response = await http.get(
+        Uri.parse(url),
+        headers: _headers,
+      );
+
+      if (kDebugMode) {
+        print('📡 Profile Response Status: ${response.statusCode}');
+        print('📄 Profile Response Body: ${response.body}');
+      }
+
+      final jsonResponse = jsonDecode(response.body);
+      return ApiResponse<ProfileResponse>.fromJson(
+        jsonResponse,
+        (data) => ProfileResponse.fromJson(data),
+      );
+    } catch (e) {
+      if (kDebugMode) print('❌ Get Profile Error: $e');
+      return ApiResponse<ProfileResponse>(
+        status: 500,
+        message: 'Network error: $e',
+        error: e.toString(),
+      );
+    }
+  }
+
+  /// Update current user's profile
+  Future<ApiResponse<ProfileResponse>> updateMyProfile(UpdateProfileRequest request) async {
+    try {
+      final url = '${ApiConstants.baseUrl}${ApiConstants.jobSeekerProfileEndpoint}';
+      if (kDebugMode) {
+        print('🚀 Update Profile API: $url');
+        print('📋 Update Request: ${jsonEncode(request.toJson())}');
+      }
+      
+      final response = await http.put(
+        Uri.parse(url),
+        headers: _headers,
+        body: jsonEncode(request.toJson()),
+      );
+
+      if (kDebugMode) {
+        print('📡 Update Profile Response Status: ${response.statusCode}');
+        print('📄 Update Profile Response Body: ${response.body}');
+      }
+
+      final jsonResponse = jsonDecode(response.body);
+      return ApiResponse<ProfileResponse>.fromJson(
+        jsonResponse,
+        (data) => ProfileResponse.fromJson(data),
+      );
+    } catch (e) {
+      if (kDebugMode) print('❌ Update Profile Error: $e');
+      return ApiResponse<ProfileResponse>(
         status: 500,
         message: 'Network error: $e',
         error: e.toString(),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/core/constants/app_colors.dart';
+import 'package:flutter_application_1/core/widgets/widgets.dart';
 import 'package:flutter_application_1/presentations/widgets/card_item_job.dart';
 
 class CompanyDetailPage extends StatelessWidget {
@@ -53,10 +54,10 @@ class CompanyDetailPage extends StatelessWidget {
           ),
         ),
         child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Company Header with Elegant Gradient
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Company Header with Elegant Gradient
             Container(
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(24, 100, 24, 32),
@@ -73,24 +74,16 @@ class CompanyDetailPage extends StatelessWidget {
               child: Column(
                 children: [
                   // Logo
-                  Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.15),
-                          blurRadius: 16,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
+                  AppCard.elevated(
                     padding: const EdgeInsets.all(16),
-                    child: Image.asset(
-                      logoAsset,
-                      fit: BoxFit.contain,
+                    margin: EdgeInsets.zero,
+                    child: SizedBox(
+                      width: 68,
+                      height: 68,
+                      child: Image.asset(
+                        logoAsset,
+                        fit: BoxFit.contain,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -130,28 +123,13 @@ class CompanyDetailPage extends StatelessWidget {
                   const SizedBox(height: 16),
                   
                   // Follow Button
-                  SizedBox(
+                  AppButton(
+                    text: 'Theo dõi công ty',
+                    onPressed: () {},
+                    icon: Icons.add,
+                    backgroundColor: Colors.white,
+                    textColor: const Color(0xFF4285F4),
                     width: double.infinity,
-                    height: 48,
-                    child: ElevatedButton.icon(
-                      onPressed: () {},
-                      icon: const Icon(Icons.add, size: 20),
-                      label: const Text(
-                        'Theo dõi công ty',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: const Color(0xFF4285F4),
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
                   ),
                 ],
               ),
@@ -245,12 +223,12 @@ class CompanyDetailPage extends StatelessWidget {
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      _buildBenefitChip('💰 Lương thưởng hấp dẫn'),
-                      _buildBenefitChip('🏥 Bảo hiểm sức khỏe'),
-                      _buildBenefitChip('🏖️ Du lịch hàng năm'),
-                      _buildBenefitChip('📚 Đào tạo & Phát triển'),
-                      _buildBenefitChip('🎂 Sinh nhật & Lễ tết'),
-                      _buildBenefitChip('⚖️ Work-life balance'),
+                      AppBadge(text: '💰 Lương thưởng hấp dẫn', backgroundColor: const Color(0xFFF0F9FF), textColor: const Color(0xFF0284C7)),
+                      AppBadge(text: '🏥 Bảo hiểm sức khỏe', backgroundColor: const Color(0xFFF0FDF4), textColor: const Color(0xFF16A34A)),
+                      AppBadge(text: '🏖️ Du lịch hàng năm', backgroundColor: const Color(0xFFFEF3C7), textColor: const Color(0xFFD97706)),
+                      AppBadge(text: '📚 Đào tạo & Phát triển', backgroundColor: const Color(0xFFF5F3FF), textColor: const Color(0xFF7C3AED)),
+                      AppBadge(text: '🎂 Sinh nhật & Lễ tết', backgroundColor: const Color(0xFFFCE7F3), textColor: const Color(0xFFDB2777)),
+                      AppBadge(text: '⚖️ Work-life balance', backgroundColor: const Color(0xFFECFCCB), textColor: const Color(0xFF65A30D)),
                     ],
                   ),
                   const SizedBox(height: 24),
@@ -405,12 +383,12 @@ class CompanyDetailPage extends StatelessWidget {
                 ],
               ),
             ),
-            
             const SizedBox(height: 24),
           ],
         ),
+    ),
       ),
-      ),
+
     );
   }
 
@@ -420,16 +398,16 @@ class CompanyDetailPage extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.borderLight,
+          color: AppColors.borderLight.withOpacity(0.3),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -437,17 +415,13 @@ class CompanyDetailPage extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 60,
-            height: 60,
+            width: 56,
+            height: 56,
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: const Color(0xFFF5F5F5),
-                width: 1,
-              ),
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(12),
             ),
-            padding: const EdgeInsets.all(10),
             child: Image.asset(
               logo,
               fit: BoxFit.contain,
@@ -458,7 +432,7 @@ class CompanyDetailPage extends StatelessWidget {
             name,
             style: const TextStyle(
               fontSize: 14,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
             ),
             maxLines: 2,

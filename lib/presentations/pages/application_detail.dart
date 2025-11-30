@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_application_1/core/utils/app_screen_layout.dart';
 import 'package:flutter_application_1/core/constants/app_colors.dart';
+import 'package:flutter_application_1/core/providers/application_provider.dart';
 import 'package:flutter_application_1/presentations/widgets/title_header_bar.dart';
 
-class ApplicationDetail extends StatelessWidget {
+class ApplicationDetail extends ConsumerStatefulWidget {
+  final int? applicationId;
   final String? jobTitle;
   final String? companyName;
   final String? location;
@@ -14,6 +17,7 @@ class ApplicationDetail extends StatelessWidget {
 
   const ApplicationDetail({
     super.key,
+    this.applicationId,
     this.jobTitle,
     this.companyName,
     this.location,
@@ -22,6 +26,58 @@ class ApplicationDetail extends StatelessWidget {
     this.applicationStatus,
     this.companyLogo,
   });
+
+  @override
+  ConsumerState<ApplicationDetail> createState() => _ApplicationDetailState();
+}
+
+class _ApplicationDetailState extends ConsumerState<ApplicationDetail> {
+  bool _isWithdrawing = false;
+
+  Future<void> _handleWithdrawApplication() async {
+    if (widget.applicationId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Không tìm thấy ID đơn ứng tuyển'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isWithdrawing = true;
+    });
+
+    try {
+      await ref.read(applicationProvider.notifier).cancelApplication(widget.applicationId!);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đã rút đơn ứng tuyển thành công'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pop(context); // Go back to applications list
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isWithdrawing = false;
+        });
+      }
+    }
+  }
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
@@ -53,12 +109,12 @@ class ApplicationDetail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final displayJobTitle = jobTitle ?? 'UI/UX Designer';
-    final displayCompanyName = companyName ?? 'Google Inc.';
-    final displayLocation = location ?? 'California, United States';
-    final displaySalary = salary ?? '\$9,000 - \$15,000/month';
-    final displayPostedTime = postedTime ?? '2 days ago';
-    final displayStatus = applicationStatus ?? 'reviewing';
+    final displayJobTitle = widget.jobTitle ?? 'UI/UX Designer';
+    final displayCompanyName = widget.companyName ?? 'Google Inc.';
+    final displayLocation = widget.location ?? 'California, United States';
+    final displaySalary = widget.salary ?? '\$9,000 - \$15,000/month';
+    final displayPostedTime = widget.postedTime ?? '2 days ago';
+    final displayStatus = widget.applicationStatus ?? 'reviewing';
     
     return Scaffold(
       backgroundColor: Colors.white,
@@ -96,7 +152,7 @@ class ApplicationDetail extends StatelessWidget {
                       ),
                       padding: const EdgeInsets.all(16),
                       child: Image.asset(
-                        companyLogo ?? 'assets/logo_lutech.png',
+                        widget.companyLogo ?? 'assets/logo_lutech.png',
                         fit: BoxFit.contain,
                       ),
                     ),
@@ -271,14 +327,23 @@ class ApplicationDetail extends StatelessWidget {
                             child: const Text('Hủy'),
                           ),
                           TextButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                              Navigator.pop(context);
+                            onPressed: _isWithdrawing ? null : () {
+                              Navigator.pop(context); // Close dialog
+                              _handleWithdrawApplication();
                             },
-                            child: const Text(
-                              'Rút đơn',
-                              style: TextStyle(color: Colors.red),
-                            ),
+                            child: _isWithdrawing
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
+                                    ),
+                                  )
+                                : const Text(
+                                    'Rút đơn',
+                                    style: TextStyle(color: Colors.red),
+                                  ),
                           ),
                         ],
                       ),

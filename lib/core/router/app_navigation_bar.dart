@@ -9,6 +9,7 @@ import 'package:flutter_application_1/presentations/pages/apply_job_page.dart';
 import 'package:flutter_application_1/features/jobs/presentation/pages/home_page.dart';
 import 'package:flutter_application_1/features/jobs/presentation/pages/search_jobs_page.dart';
 import 'package:flutter_application_1/features/profile/presentation/pages/profile_page.dart';
+import 'package:flutter_application_1/features/profile/presentation/pages/profile_edit_page.dart';
 import 'package:flutter_application_1/features/profile/presentation/pages/profile_placeholder_page.dart';
 import 'package:flutter_application_1/features/applications/presentation/pages/applications_page.dart';
 import 'package:flutter_application_1/features/applications/presentation/pages/application_detail_page.dart';
@@ -19,7 +20,16 @@ import 'package:flutter_application_1/presentations/pages/lastest_job_screen.dar
 import 'package:flutter_application_1/presentations/pages/messages_screen.dart';
 import 'package:flutter_application_1/presentations/pages/notification_page_screen.dart';
 import 'package:flutter_application_1/presentations/pages/saved_job_screen.dart';
+import 'package:flutter_application_1/presentations/pages/chat_detail_screen.dart';
+import 'package:flutter_application_1/core/models/conversation.dart';
 import 'package:flutter_application_1/presentations/wrapper/main_wrapper.dart';
+import 'package:flutter_application_1/presentations/pages/settings/deactivate_account_screen.dart';
+import 'package:flutter_application_1/presentations/pages/settings/job_seeking_status_screen.dart';
+import 'package:flutter_application_1/presentations/pages/settings/linked_accounts_screen.dart';
+import 'package:flutter_application_1/presentations/pages/settings/notification_settings_screen.dart';
+import 'package:flutter_application_1/presentations/pages/settings/security_settings_screen.dart';
+import 'package:flutter_application_1/presentations/pages/settings/language_settings_screen.dart';
+import 'package:flutter_application_1/presentations/pages/settings/help_center_screen.dart';
 import 'package:go_router/go_router.dart';
 
 // Wrapper widget to check auth state
@@ -204,6 +214,63 @@ class AppNavigationBar {
         path: '/createNewPassword',
         name: 'createNewPassword',
         builder: (context, state) => const CreateNewPasswordPage(),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/chatDetail',
+        name: 'chatDetail',
+        builder: (context, state) {
+          final conversation = state.extra as Conversation;
+          return ChatDetailScreen(conversation: conversation);
+        },
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/deactivateAccount',
+        name: 'deactivateAccount',
+        builder: (context, state) => const DeactivateAccountScreen(),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/jobSeekingStatus',
+        name: 'jobSeekingStatus',
+        builder: (context, state) => const JobSeekingStatusScreen(),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/personalInformation',
+        name: 'personalInformation',
+        builder: (context, state) => const ProfileEditPage(),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/linkedAccounts',
+        name: 'linkedAccounts',
+        builder: (context, state) => const LinkedAccountsScreen(),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/notificationSettings',
+        name: 'notificationSettings',
+        builder: (context, state) => const NotificationSettingsScreen(),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/securitySettings',
+        name: 'securitySettings',
+        builder: (context, state) => const SecuritySettingsScreen(),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/languageSettings',
+        name: 'languageSettings',
+        builder: (context, state) => const LanguageSettingsScreen(),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/helpCenter',
+        name: 'helpCenter',
+        builder: (context, state) => const HelpCenterScreen(),
       ),
     ],
   );

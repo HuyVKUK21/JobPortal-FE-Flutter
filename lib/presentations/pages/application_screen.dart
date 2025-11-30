@@ -2,58 +2,80 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_application_1/core/utils/app_screen_layout.dart';
 import 'package:flutter_application_1/core/constants/app_colors.dart';
+import 'package:flutter_application_1/core/providers/application_provider.dart';
+import 'package:flutter_application_1/core/providers/auth_provider.dart';
+import 'package:flutter_application_1/core/widgets/widgets.dart';
 import 'package:flutter_application_1/presentations/widgets/item_application_notification.dart';
 import 'package:flutter_application_1/presentations/widgets/title_header_bar.dart';
 import 'package:flutter_application_1/presentations/pages/application_detail.dart';
+import 'package:intl/intl.dart';
 
-class ApplicationScreen extends ConsumerWidget {
+class ApplicationScreen extends ConsumerStatefulWidget {
   const ApplicationScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // Sample data - sau này sẽ thay bằng API
-    final sampleApplications = [
-      {
-        'title': 'Senior Backend Developer',
-        'company': 'VPBank',
-        'date': '27 thg 11, 2025 | 10:00',
-        'message': 'Đơn ứng tuyển của bạn đã được chấp nhận',
-        'isNew': true,
-        'status': 'accepted',
-      },
-      {
-        'title': 'UI/UX Designer',
-        'company': 'FPT Software',
-        'date': '26 thg 11, 2025 | 14:30',
-        'message': 'Đơn ứng tuyển của bạn đang được xem xét',
-        'isNew': true,
-        'status': 'reviewing',
-      },
-      {
-        'title': 'Frontend Developer',
-        'company': 'Techcombank',
-        'date': '25 thg 11, 2025 | 09:15',
-        'message': 'Đơn ứng tuyển của bạn đã được gửi',
-        'isNew': false,
-        'status': 'pending',
-      },
-      {
-        'title': 'Product Manager',
-        'company': 'Viettel',
-        'date': '24 thg 11, 2025 | 16:45',
-        'message': 'Đơn ứng tuyển của bạn đang được xử lý',
-        'isNew': false,
-        'status': 'pending',
-      },
-      {
-        'title': 'Mobile Developer',
-        'company': 'Vingroup',
-        'date': '23 thg 11, 2025 | 11:20',
-        'message': 'Đơn ứng tuyển của bạn đã được nhận',
-        'isNew': false,
-        'status': 'pending',
-      },
-    ];
+  ConsumerState<ApplicationScreen> createState() => _ApplicationScreenState();
+}
+
+class _ApplicationScreenState extends ConsumerState<ApplicationScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Load applications when page initializes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final currentUser = ref.read(currentUserProvider);
+      if (currentUser != null) {
+        ref.read(applicationProvider.notifier).getMyApplications(currentUser.userId);
+      }
+    });
+  }
+
+  String _formatDate(String? dateStr) {
+    if (dateStr == null) return 'N/A';
+    try {
+      final date = DateTime.parse(dateStr);
+      final formatter = DateFormat('dd \'thg\' MM, yyyy | HH:mm');
+      return formatter.format(date);
+    } catch (e) {
+      return dateStr;
+    }
+  }
+
+  String _getStatusMessage(String status) {
+    switch (status.toLowerCase()) {
+      case 'accepted':
+        return 'Đơn ứng tuyển của bạn đã được chấp nhận';
+      case 'rejected':
+        return 'Đơn ứng tuyển của bạn đã bị từ chối';
+      case 'reviewing':
+      case 'in_review':
+        return 'Đơn ứng tuyển của bạn đang được xem xét';
+      case 'pending':
+        return 'Đơn ứng tuyển của bạn đang được xử lý';
+      case 'cancelled':
+        return 'Đơn ứng tuyển đã bị hủy';
+      default:
+        return 'Đơn ứng tuyển của bạn đã được gửi';
+    }
+  }
+
+  bool _isNewApplication(String? dateStr) {
+    if (dateStr == null) return false;
+    try {
+      final date = DateTime.parse(dateStr);
+      final now = DateTime.now();
+      final difference = now.difference(date);
+      return difference.inHours < 24; // New if less than 24 hours
+    } catch (e) {
+      return false;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final applications = ref.watch(applicationsProvider);
+    final isLoading = ref.watch(applicationLoadingProvider);
+    final error = ref.watch(applicationErrorProvider);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -69,39 +91,83 @@ class ApplicationScreen extends ConsumerWidget {
             
             // List of applications
             Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                itemCount: sampleApplications.length,
-                itemBuilder: (context, index) {
-                  final app = sampleApplications[index];
-                  return ItemApplicationNotification(
-                    title: app['title'] as String,
-                    company: app['company'] as String,
-                    date: app['date'] as String,
-                    message: app['message'] as String,
-                    isNew: app['isNew'] as bool,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ApplicationDetail(
-                            jobTitle: app['title'] as String,
-                            companyName: app['company'] as String,
-                            companyLogo: 'assets/logo_lutech.png',
-                            location: 'Hà Nội',
-                            salary: '20 - 40 triệu /tháng',
-                            applicationStatus: app['status'] as String,
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
+              child: _buildApplicationsList(applications, isLoading, error),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildApplicationsList(
+    List<dynamic> applications,
+    bool isLoading,
+    String? error,
+  ) {
+    if (isLoading) {
+      return const AppLoadingIndicator(
+        message: 'Đang tải danh sách ứng tuyển...',
+      );
+    }
+
+    if (error != null) {
+      return EmptyState(
+        icon: Icons.error_outline,
+        title: 'Có lỗi xảy ra',
+        subtitle: error,
+        action: AppButton(
+          text: 'Thử lại',
+          onPressed: () {
+            final currentUser = ref.read(currentUserProvider);
+            if (currentUser != null) {
+              ref.read(applicationProvider.notifier).getMyApplications(currentUser.userId);
+            }
+          },
+        ),
+      );
+    }
+
+    if (applications.isEmpty) {
+      return EmptyState(
+        icon: Icons.work_outline,
+        title: 'Chưa có đơn ứng tuyển',
+        subtitle: 'Hãy tìm kiếm và ứng tuyển các công việc phù hợp với bạn',
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      itemCount: applications.length,
+      itemBuilder: (context, index) {
+        final app = applications[index];
+        final jobTitle = app.job?.title ?? 'N/A';
+        final companyName = app.job?.company?.name ?? 'Công ty';
+        final status = app.status ?? 'pending';
+        final appliedAt = app.appliedAt;
+        
+        return ItemApplicationNotification(
+          title: jobTitle,
+          company: companyName,
+          date: _formatDate(appliedAt),
+          message: _getStatusMessage(status),
+          isNew: _isNewApplication(appliedAt),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ApplicationDetail(
+                  jobTitle: jobTitle,
+                  companyName: companyName,
+                  companyLogo: 'assets/logo_lutech.png',
+                  location: app.job?.location ?? 'N/A',
+                  salary: app.job?.salaryRange ?? 'Thỏa thuận',
+                  applicationStatus: status,
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

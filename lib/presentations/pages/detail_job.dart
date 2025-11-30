@@ -170,68 +170,83 @@ class _DetailJobState extends ConsumerState<DetailJob> {
           ),
         ],
       ),
-      body: AppScreenLayout(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            JobDetailInfomationHeader(job: job),
-            const SizedBox(height: 8),
+      body: Stack(
+        children: [
+          // Main content
+          AppScreenLayout(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                JobDetailInfomationHeader(job: job),
+                const SizedBox(height: 8),
 
-            JobTabBar(tabs: tabs, currentTab: currentTab, onTap: _scrollTo),
+                JobTabBar(tabs: tabs, currentTab: currentTab, onTap: _scrollTo),
 
-            Expanded(
-              child: ScrollablePositionedList.builder(
-                itemScrollController: _itemScrollController,
-                itemPositionsListener: _itemPositionsListener,
-                itemCount: sections.length,
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: sections[index],
-                  );
-                },
-              ),
+                Expanded(
+                  child: ScrollablePositionedList.builder(
+                    itemScrollController: _itemScrollController,
+                    itemPositionsListener: _itemPositionsListener,
+                    itemCount: sections.length,
+                    padding: const EdgeInsets.only(bottom: 100), // Add padding for floating button
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: sections[index],
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
-
-            // Apply Button
-            Container(
+          ),
+          
+          // Apply Button - Floating at bottom
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
               width: double.infinity,
               padding: const EdgeInsets.all(AppDimensions.spaceL),
               decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, -5),
-                  ),
-                ],
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.white.withOpacity(0.0),
+                    Colors.white.withOpacity(0.9),
+                    Colors.white,
+                  ],
+                ),
               ),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _applyJob,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    padding: const EdgeInsets.symmetric(vertical: AppDimensions.spaceL),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppDimensions.radiusL),
+              child: SafeArea(
+                top: false,
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _applyJob,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      padding: const EdgeInsets.symmetric(vertical: AppDimensions.spaceL),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppDimensions.radiusL),
+                      ),
+                      elevation: 2,
                     ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    'Ứng tuyển',
-                    style: TextStyle(
-                      fontSize: AppDimensions.fontL,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                    child: const Text(
+                      'Ứng tuyển',
+                      style: TextStyle(
+                        fontSize: AppDimensions.fontL,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

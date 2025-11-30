@@ -3,10 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_application_1/core/utils/app_screen_layout.dart';
 import 'package:flutter_application_1/core/providers/application_provider.dart';
 import 'package:flutter_application_1/core/providers/auth_provider.dart';
+import 'package:flutter_application_1/core/widgets/widgets.dart';
 import 'package:flutter_application_1/presentations/widgets/card_item_job.dart';
 import 'package:flutter_application_1/presentations/widgets/search_box.dart';
 import 'package:flutter_application_1/presentations/widgets/title_header_bar.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lottie/lottie.dart';
+import 'package:flutter_application_1/core/constants/lottie_assets.dart';
 
 class SavedJobScreen extends ConsumerStatefulWidget {
   const SavedJobScreen({super.key});
@@ -59,34 +62,103 @@ class _SavedJobScreenState extends ConsumerState<SavedJobScreen> {
     final error = ref.watch(applicationErrorProvider);
 
     if (isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
+      return const AppLoadingIndicator(
+        message: 'Đang tải việc làm đã lưu...',
       );
     }
 
     if (error != null) {
+      // Check if it's a network error
+      final isNetworkError = error.toLowerCase().contains('network');
+      
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('Lỗi: $error'),
-            ElevatedButton(
-              onPressed: () {
-                final currentUser = ref.read(currentUserProvider);
-                if (currentUser != null) {
-                  ref.read(applicationProvider.notifier).getSavedJobs(currentUser.userId);
-                }
-              },
-              child: const Text('Thử lại'),
-            ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.all(40),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Lottie.asset(
+                isNetworkError ? LottieAssets.noInternet : LottieAssets.error404,
+                width: 200,
+                height: 200,
+              ),
+              const SizedBox(height: 24),
+              Text(
+                isNetworkError ? 'Không có kết nối mạng' : 'Có lỗi xảy ra',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                isNetworkError 
+                    ? 'Vui lòng kiểm tra kết nối internet và thử lại'
+                    : error,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () {
+                  final currentUser = ref.read(currentUserProvider);
+                  if (currentUser != null) {
+                    ref.read(applicationProvider.notifier).getSavedJobs(currentUser.userId);
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF4285F4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 12,
+                  ),
+                ),
+                child: const Text(
+                  'Thử lại',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
 
     if (savedJobs.isEmpty) {
-      return const Center(
-        child: Text('Chưa có việc làm nào được lưu'),
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(40),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Lottie.asset(
+                LottieAssets.noResultFound,
+                width: 200,
+                height: 200,
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'Chưa có việc làm đã lưu',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Lưu các công việc bạn quan tâm để xem lại sau',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
       );
     }
 
@@ -123,6 +195,7 @@ class _SavedJobScreenState extends ConsumerState<SavedJobScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
+      useRootNavigator: true,
       builder: (BuildContext context) {
         return Container(
           decoration: const BoxDecoration(
@@ -170,79 +243,49 @@ class _SavedJobScreenState extends ConsumerState<SavedJobScreen> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
-              
-              // Buttons
-              Row(
-                children: [
-                  // Cancel button
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        side: const BorderSide(
-                          color: Color(0xFFE5E7EB),
-                          width: 1.5,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                            // Buttons
+                  Row(
+                    children: [
+                      // Cancel button
+                      Expanded(
+                        child: AppOutlinedButton(
+                          text: 'Hủy',
+                          onPressed: () => Navigator.pop(context),
+                          borderColor: const Color(0xFFE5E7EB),
+                          textColor: const Color(0xFF374151),
                         ),
                       ),
-                      child: const Text(
-                        'Hủy',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF374151),
+                      const SizedBox(width: 12),
+                      
+                      // Remove button
+                      Expanded(
+                        child: AppButton(
+                          text: 'Xóa',
+                          onPressed: () {
+                            // Remove the saved job
+                            final currentUser = ref.read(currentUserProvider);
+                            if (currentUser != null && savedJob.job?.jobId != null) {
+                              ref.read(applicationProvider.notifier).unsaveJob(
+                                currentUser.userId,
+                                savedJob.job!.jobId,
+                              );
+                            }
+                            Navigator.pop(context);
+                            
+                            // Show success snackbar
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Đã xóa khỏi danh sách đã lưu'),
+                                duration: Duration(seconds: 2),
+                                backgroundColor: Color(0xFF10B981),
+                              ),
+                            );
+                          },
+                          backgroundColor: const Color(0xFF4285F4),
                         ),
                       ),
-                    ),
+                    ],
                   ),
-                  const SizedBox(width: 12),
-                  
-                  // Remove button
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        // Remove the saved job
-                        final currentUser = ref.read(currentUserProvider);
-                        if (currentUser != null && savedJob.job?.jobId != null) {
-                          ref.read(applicationProvider.notifier).unsaveJob(
-                            currentUser.userId,
-                            savedJob.job!.jobId,
-                          );
-                        }
-                        Navigator.pop(context);
-                        
-                        // Show success snackbar
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Đã xóa khỏi danh sách đã lưu'),
-                            duration: Duration(seconds: 2),
-                            backgroundColor: Color(0xFF10B981),
-                          ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        backgroundColor: const Color(0xFF4285F4),
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text(
-                        'Xóa',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
               const SizedBox(height: 8),
             ],
           ),

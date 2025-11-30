@@ -25,7 +25,7 @@ class ApiConstants {
   
   // Application endpoints
   static const String applyJobEndpoint = '/applications';
-  static const String myApplicationsEndpoint = '/applications/seeker';
+  static const String myApplicationsEndpoint = '/job-seekers/applications';
   static const String applicationDetailEndpoint = '/applications';
   
   // Employer endpoints

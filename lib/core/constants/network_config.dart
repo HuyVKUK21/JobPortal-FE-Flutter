@@ -3,13 +3,13 @@ import 'package:flutter/foundation.dart';
 
 class NetworkConfig {
   // Base URLs cho các platform khác nhau
-  static const String _localhost = 'http://192.168.1.30:8080/api';
-  static const String _androidEmulator = 'http://192.168.1.30:8080/api';
+  static const String _localhost = 'http://192.168.1.31:8080/api';
+  static const String _androidEmulator = 'http://192.168.1.31:8080/api';
   
   // TODO: Thay đổi IP này theo máy của bạn
   // Chạy 'ipconfig' trên Windows để tìm IPv4 Address
   // Ví dụ: 192.168.1.100, 192.168.0.105, etc.
-  static const String _networkIP = 'http://192.168.1.30:8080/api';
+  static const String _networkIP = 'http://192.168.1.31:8080/api';
   
   // Environment variable để override IP (optional)
   static const String? _envNetworkIP = String.fromEnvironment('NETWORK_IP');

@@ -33,8 +33,12 @@ class _MyAppState extends ConsumerState<MyApp> {
     return MaterialApp.router(
       title: 'Job Portal',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF4285F4), // AppColors.primary
+          primary: const Color(0xFF4285F4),
+        ),
         fontFamily: 'SF Pro',
+        useMaterial3: true,
       ),
       routerConfig: AppNavigationBar.router,
     );

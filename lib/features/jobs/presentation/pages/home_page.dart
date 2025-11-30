@@ -18,8 +18,10 @@ import 'package:flutter_application_1/presentations/pages/all_jobs_page.dart';
 import 'package:flutter_application_1/core/providers/job_provider.dart';
 import 'package:flutter_application_1/core/providers/application_provider.dart';
 import 'package:flutter_application_1/core/providers/auth_provider.dart';
-import 'package:flutter_application_1/presentations/pages/salary_calculator_page.dart';
+import 'package:flutter_application_1/features/salary_calculator/presentation/pages/salary_calculator_page_refactored.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lottie/lottie.dart';
+import 'package:flutter_application_1/core/constants/lottie_assets.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -68,6 +70,81 @@ class _HomePageState extends ConsumerState<HomePage> {
       'Gia sư',
     ];
     SizeConfig.init(context);
+    
+    // Show full-screen error if jobs API fails (most critical)
+    if (error != null && !isLoading) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(40.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Lottie.asset(
+                    error.toLowerCase().contains('network')
+                        ? LottieAssets.noInternet
+                        : LottieAssets.error404,
+                    width: 250,
+                    height: 250,
+                  ),
+                  const SizedBox(height: 32),
+                  Text(
+                    error.toLowerCase().contains('network')
+                        ? 'Không có kết nối mạng'
+                        : 'Có lỗi xảy ra',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    error.toLowerCase().contains('network')
+                        ? 'Vui lòng kiểm tra kết nối internet của bạn'
+                        : error,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      color: Colors.grey,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 32),
+                  ElevatedButton(
+                    onPressed: () {
+                      ref.read(jobProvider.notifier).getAllJobs();
+                      final currentUser = ref.read(currentUserProvider);
+                      if (currentUser != null) {
+                        ref.read(applicationProvider.notifier).getSavedJobs(currentUser.userId);
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF4285F4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 40,
+                        vertical: 16,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Thử lại',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
     
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -214,7 +291,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const SalaryCalculatorPage(),
+                            builder: (context) => const SalaryCalculatorPageRefactored(),
                           ),
                         );
                       },
@@ -306,25 +383,6 @@ class _HomePageState extends ConsumerState<HomePage> {
                         child: Padding(
                           padding: EdgeInsets.all(20.0),
                           child: CircularProgressIndicator(),
-                        ),
-                      )
-                    // Show error message
-                    else if (error != null)
-                      Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(20.0),
-                          child: Column(
-                            children: [
-                              Text('Lỗi: $error', style: const TextStyle(color: Colors.red)),
-                              const SizedBox(height: 10),
-                              ElevatedButton(
-                                onPressed: () {
-                                  ref.read(jobProvider.notifier).getAllJobs();
-                                },
-                                child: const Text('Thử lại'),
-                              ),
-                            ],
-                          ),
                         ),
                       )
                     // Show API jobs if available, otherwise show static job
