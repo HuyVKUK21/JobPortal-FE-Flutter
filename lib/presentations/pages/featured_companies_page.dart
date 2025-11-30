@@ -100,17 +100,27 @@ class _FeaturedCompaniesPageState extends State<FeaturedCompaniesPage> {
           
           // Companies Grid
           Expanded(
-            child: GridView.builder(
-              padding: const EdgeInsets.all(20),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 0.75,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-              ),
-              itemCount: 12,
-              itemBuilder: (context, index) {
-                return _buildCompanyGridCard(index);
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                // Calculate responsive grid parameters
+                final screenWidth = constraints.maxWidth;
+                final crossAxisCount = screenWidth > 600 ? 3 : 2;
+                // Use fixed aspect ratio that works well for the card design
+                final childAspectRatio = screenWidth > 600 ? 0.7 : 0.65;
+                
+                return GridView.builder(
+                  padding: const EdgeInsets.all(20),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: crossAxisCount,
+                    childAspectRatio: childAspectRatio,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                  ),
+                  itemCount: 12,
+                  itemBuilder: (context, index) {
+                    return _buildCompanyGridCard(index);
+                  },
+                );
               },
             ),
           ),
