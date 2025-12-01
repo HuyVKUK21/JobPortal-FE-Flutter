@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/core/utils/app_screen_layout.dart';
 import 'package:flutter_application_1/presentations/widgets/card_item_job.dart';
-import 'package:flutter_application_1/presentations/widgets/job_category.dart';
 import 'package:flutter_application_1/presentations/widgets/title_header_bar.dart';
 
 class LastestJobScreen extends StatelessWidget {
@@ -9,13 +8,7 @@ class LastestJobScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    List<String> categories = [
-      'Tất cả',
-      'Tài chính',
-      'IT',
-      'Quản lý',
-      'Gia sư',
-    ];
+    // Legacy page - categories removed, use empty list
     return Scaffold(
       backgroundColor: Colors.white,
       body: AppScreenLayout(
@@ -27,7 +20,7 @@ class LastestJobScreen extends StatelessWidget {
               iconHeaderRightBar: Icons.search,
             ),
             SizedBox(height: 16),
-            JobCategory(categories: categories),
+            // Category filter removed - legacy page
             SizedBox(height: 16),
             Expanded(
               child: SingleChildScrollView(

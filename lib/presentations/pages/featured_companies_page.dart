@@ -1,17 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_application_1/core/constants/app_colors.dart';
 import 'package:flutter_application_1/presentations/widgets/featured_company_card.dart';
-import 'package:flutter_application_1/presentations/pages/company_detail_page.dart';
+import 'package:flutter_application_1/core/providers/company_provider.dart';
+import 'package:flutter_application_1/core/providers/saved_company_provider.dart';
+import 'package:flutter_application_1/core/providers/auth_provider.dart';
+import 'package:go_router/go_router.dart';
 
-class FeaturedCompaniesPage extends StatefulWidget {
+class FeaturedCompaniesPage extends ConsumerStatefulWidget {
   const FeaturedCompaniesPage({super.key});
 
   @override
-  State<FeaturedCompaniesPage> createState() => _FeaturedCompaniesPageState();
+  ConsumerState<FeaturedCompaniesPage> createState() => _FeaturedCompaniesPageState();
 }
 
-class _FeaturedCompaniesPageState extends State<FeaturedCompaniesPage> {
+class _FeaturedCompaniesPageState extends ConsumerState<FeaturedCompaniesPage> {
   String selectedCategory = 'Tất cả';
+  
+  @override
+  void initState() {
+    super.initState();
+    // Load saved companies when page initializes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final currentUser = ref.read(currentUserProvider);
+      if (currentUser != null) {
+        ref.read(savedCompaniesNotifierProvider.notifier).getSavedCompanies(currentUser.userId);
+      }
+    });
+  }
   
   final List<String> categories = [
     'Tất cả',
@@ -98,160 +114,128 @@ class _FeaturedCompaniesPageState extends State<FeaturedCompaniesPage> {
           
           const Divider(height: 1),
           
-          // Companies Grid
+          // Companies Grid with API data
           Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                // Calculate responsive grid parameters
-                final screenWidth = constraints.maxWidth;
-                final crossAxisCount = screenWidth > 600 ? 3 : 2;
-                // Use fixed aspect ratio that works well for the card design
-                final childAspectRatio = screenWidth > 600 ? 0.7 : 0.65;
+            child: Consumer(
+              builder: (context, ref, child) {
+                final companiesAsync = ref.watch(featuredCompaniesProvider);
                 
-                return GridView.builder(
-                  padding: const EdgeInsets.all(20),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: crossAxisCount,
-                    childAspectRatio: childAspectRatio,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                  ),
-                  itemCount: 12,
-                  itemBuilder: (context, index) {
-                    return _buildCompanyGridCard(index);
+                return companiesAsync.when(
+                  data: (companies) {
+                    if (companies.isEmpty) {
+                      return const Center(
+                        child: Text('Không có công ty nào'),
+                      );
+                    }
+                    
+                    // Filter by category
+                    final filteredCompanies = selectedCategory == 'Tất cả'
+                        ? companies
+                        : companies.where((c) => c.industry == selectedCategory).toList();
+                    
+                    if (filteredCompanies.isEmpty) {
+                      return const Center(
+                        child: Text('Không có công ty nào trong danh mục này'),
+                      );
+                    }
+                    
+                    return LayoutBuilder(
+                      builder: (context, constraints) {
+                        final screenWidth = constraints.maxWidth;
+                        final crossAxisCount = screenWidth > 600 ? 3 : 2;
+                        final childAspectRatio = screenWidth > 600 ? 0.7 : 0.65;
+                        
+                        return GridView.builder(
+                          padding: const EdgeInsets.all(20),
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: crossAxisCount,
+                            childAspectRatio: childAspectRatio,
+                            crossAxisSpacing: 12,
+                            mainAxisSpacing: 12,
+                          ),
+                          itemCount: filteredCompanies.length,
+                          itemBuilder: (context, index) {
+                            final company = filteredCompanies[index];
+                            final savedCompanies = ref.watch(savedCompaniesProvider);
+                            final isSaved = savedCompanies.any((sc) => sc.company.id == company.id);
+                            
+                            return FeaturedCompanyCard(
+                              companyName: company.name,
+                              category: company.industry,
+                              logoAsset: company.logo ?? 'assets/logo_lutech.png',
+                              salaryBadge: '${company.totalJobs}+ việc',
+                              isFollowing: isSaved,
+                              onFollowTap: () {
+                                final currentUser = ref.read(currentUserProvider);
+                                if (currentUser == null) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Vui lòng đăng nhập để lưu công ty'),
+                                      backgroundColor: Colors.orange,
+                                    ),
+                                  );
+                                  return;
+                                }
+                                
+                                if (isSaved) {
+                                  ref.read(savedCompaniesNotifierProvider.notifier).unsaveCompany(
+                                    currentUser.userId,
+                                    company.id,
+                                  );
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Đã bỏ theo dõi công ty'),
+                                      duration: Duration(seconds: 2),
+                                      backgroundColor: Color(0xFF6B7280),
+                                    ),
+                                  );
+                                } else {
+                                  ref.read(savedCompaniesNotifierProvider.notifier).saveCompany(
+                                    currentUser.userId,
+                                    company.id,
+                                  );
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Đã theo dõi công ty'),
+                                      duration: Duration(seconds: 2),
+                                      backgroundColor: Color(0xFF10B981),
+                                    ),
+                                  );
+                                }
+                              },
+                              onTap: () {
+                                context.pushNamed(
+                                  'companyDetail',
+                                  pathParameters: {'companyId': company.id.toString()},
+                                  extra: {
+                                    'companyName': company.name,
+                                    'category': company.industry,
+                                    'logoAsset': company.logo ?? 'assets/logo_lutech.png',
+                                    'location': company.location,
+                                    'employeeCount': company.employeeCount ?? 0,
+                                    'website': company.website ?? '',
+                                    'description': company.description,
+                                  },
+                                );
+                              },
+                            );
+                          },
+                        );
+                      },
+                    );
                   },
+                  loading: () => const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                  error: (error, stack) => Center(
+                    child: Text('Lỗi: $error'),
+                  ),
                 );
               },
             ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildCompanyGridCard(int index) {
-    final companies = [
-      {
-        'name': 'Ngân Hàng TMCP Việt Nam Thịnh Vượng',
-        'category': 'Ngân hàng',
-        'logo': 'assets/logo_lutech.png',
-        'jobs': '120+',
-        'location': 'Hà Nội',
-        'employees': 5000,
-      },
-      {
-        'name': 'NGÂN HÀNG KỸ THƯƠNG VIỆT NAM',
-        'category': 'Ngân hàng',
-        'logo': 'assets/logo_google.png',
-        'jobs': '150+',
-        'location': 'TP. HCM',
-        'employees': 8000,
-      },
-      {
-        'name': 'CÔNG TY TẬP ĐOÀN TRƯỜNG HẢI',
-        'category': 'Sản xuất',
-        'logo': 'assets/logo_lutech.png',
-        'jobs': '80+',
-        'location': 'Quảng Nam',
-        'employees': 15000,
-      },
-      {
-        'name': 'TẬP ĐOÀN VIỄN THÔNG QUÂN ĐỘI',
-        'category': 'Viễn thông',
-        'logo': 'assets/logo_google.png',
-        'jobs': '200+',
-        'location': 'Hà Nội',
-        'employees': 20000,
-      },
-      {
-        'name': 'FPT Software',
-        'category': 'Công nghệ',
-        'logo': 'assets/logo_lutech.png',
-        'jobs': '180+',
-        'location': 'Hà Nội',
-        'employees': 10000,
-      },
-      {
-        'name': 'Vietcombank',
-        'category': 'Ngân hàng',
-        'logo': 'assets/logo_google.png',
-        'jobs': '130+',
-        'location': 'Hà Nội',
-        'employees': 12000,
-      },
-      {
-        'name': 'Vingroup',
-        'category': 'Bất động sản',
-        'logo': 'assets/logo_lutech.png',
-        'jobs': '250+',
-        'location': 'Hà Nội',
-        'employees': 50000,
-      },
-      {
-        'name': 'Masan Group',
-        'category': 'Sản xuất',
-        'logo': 'assets/logo_google.png',
-        'jobs': '90+',
-        'location': 'TP. HCM',
-        'employees': 8000,
-      },
-      {
-        'name': 'Samsung Vietnam',
-        'category': 'Công nghệ',
-        'logo': 'assets/logo_lutech.png',
-        'jobs': '300+',
-        'location': 'Bắc Ninh',
-        'employees': 60000,
-      },
-      {
-        'name': 'Grab Vietnam',
-        'category': 'Công nghệ',
-        'logo': 'assets/logo_google.png',
-        'jobs': '60+',
-        'location': 'TP. HCM',
-        'employees': 2000,
-      },
-      {
-        'name': 'Shopee Vietnam',
-        'category': 'Công nghệ',
-        'logo': 'assets/logo_lutech.png',
-        'jobs': '110+',
-        'location': 'TP. HCM',
-        'employees': 3000,
-      },
-      {
-        'name': 'Tiki Corporation',
-        'category': 'Công nghệ',
-        'logo': 'assets/logo_google.png',
-        'jobs': '50+',
-        'location': 'TP. HCM',
-        'employees': 1500,
-      },
-    ];
-
-    final company = companies[index % companies.length];
-    
-    return FeaturedCompanyCard(
-      companyName: company['name'] as String,
-      category: company['category'] as String,
-      logoAsset: company['logo'] as String,
-      salaryBadge: '${company['jobs']} việc',
-      isFollowing: index % 4 == 0,
-      onFollowTap: () {},
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => CompanyDetailPage(
-              companyName: company['name'] as String,
-              category: company['category'] as String,
-              logoAsset: company['logo'] as String,
-              location: company['location'] as String,
-              employeeCount: company['employees'] as int,
-            ),
-          ),
-        );
-      },
     );
   }
 }

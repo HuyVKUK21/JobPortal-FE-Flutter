@@ -15,94 +15,97 @@ class JobDetailInfomationSummary extends StatelessWidget {
           title,
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
+        
+        // First Row - Job Level and Category
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Trình độ công việc', style: TextStyle()),
-                  const SizedBox(height: 4),
-                  Text(
-                    job.jobInformation?.jobLevel ?? 'Không yêu cầu',
-                    style: const TextStyle(
-                      color: Color(0xFF246BFD),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text('Yêu cầu học vấn', style: TextStyle()),
-                  const SizedBox(height: 4),
-                  Text(
-                    job.jobInformation?.education ?? 'Không yêu cầu',
-                    style: const TextStyle(
-                      color: Color(0xFF246BFD),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text('Số lượng ứng viên', style: TextStyle()),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${job.jobInformation?.numberOfApplicants ?? 0} người',
-                    style: const TextStyle(
-                      color: Color(0xFF246BFD),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                ],
+              child: _buildInfoItem(
+                'Trình độ công việc',
+                'Không yêu cầu', // jobLevel removed from API
               ),
             ),
-            const SizedBox(width: 20),
+            const SizedBox(width: 16),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Danh mục công việc', style: TextStyle()),
-                  const SizedBox(height: 4),
-                  Text(
-                    job.categories.isNotEmpty ? job.categories.first.name : 'Không có',
-                    softWrap: true,
-                    overflow: TextOverflow.visible,
-                    style: const TextStyle(
-                      color: Color(0xFF246BFD),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text('Yêu cầu kinh nghiệm', style: TextStyle()),
-                  const SizedBox(height: 4),
-                  Text(
-                    job.experienceRequired?.experiences ?? 'Không yêu cầu',
-                    style: const TextStyle(
-                      color: Color(0xFF246BFD),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text('Website', style: TextStyle()),
-                  const SizedBox(height: 4),
-                  Text(
-                    job.company?.website ?? 'Không có',
-                    softWrap: true,
-                    overflow: TextOverflow.visible,
-                    style: const TextStyle(
-                      color: Color(0xFF246BFD),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                ],
+              child: _buildInfoItem(
+                'Danh mục công việc',
+                job.categories.isNotEmpty ? job.categories.first.name : 'Không có',
               ),
             ),
           ],
+        ),
+        
+        const SizedBox(height: 16),
+        
+        // Second Row - Education and Experience
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: _buildInfoItem(
+                'Trình độ học vấn',
+                'Không yêu cầu', // education removed from API
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildInfoItem(
+                'Yêu cầu kinh nghiệm',
+                job.experienceRequired?.experiences ?? 'Không yêu cầu',
+              ),
+            ),
+          ],
+        ),
+        
+        const SizedBox(height: 16),
+        
+        // Third Row - Applicants and Website
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: _buildInfoItem(
+                'Số lượng ứng tuyển',
+                '0 người', // numberOfApplicants removed from API
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildInfoItem(
+                'Website công ty',
+                job.company?.website ?? 'Không có',
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInfoItem(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            color: Colors.grey,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: const TextStyle(
+            color: Color(0xFF246BFD),
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+          ),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
         ),
       ],
     );

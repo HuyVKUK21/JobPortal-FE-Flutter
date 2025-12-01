@@ -136,8 +136,8 @@ class JobNotifier extends StateNotifier<JobState> {
         skillId: skillId,
         page: page,
         size: size,
-        sortBy: sortBy,
-        sortOrder: sortOrder,
+        sortBy: sortBy ?? 'postedAt',
+        sortOrder: sortOrder ?? 'DESC',
       );
       
       final response = await _apiService.filterJobs(request);
@@ -145,6 +145,32 @@ class JobNotifier extends StateNotifier<JobState> {
       if (response.isSuccess && response.data != null) {
         state = state.copyWith(
           jobs: response.data!,
+          isLoading: false,
+          error: null,
+        );
+      } else {
+        state = state.copyWith(
+          isLoading: false,
+          error: response.message,
+        );
+      }
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Đã xảy ra lỗi: $e',
+      );
+    }
+  }
+
+  Future<void> getJobDetail(int jobId) async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      final response = await _apiService.getJobDetail(jobId);
+
+      if (response.isSuccess && response.data != null) {
+        state = state.copyWith(
+          selectedJob: response.data!,
           isLoading: false,
           error: null,
         );
@@ -188,15 +214,15 @@ class JobNotifier extends StateNotifier<JobState> {
     }
   }
 
-  Future<void> getJobDetail(int jobId) async {
+  Future<void> getJobsByCategory(int categoryId) async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final response = await _apiService.getJobDetail(jobId);
+      final response = await _apiService.getJobsByCategory(categoryId);
 
       if (response.isSuccess && response.data != null) {
         state = state.copyWith(
-          selectedJob: response.data!,
+          jobs: response.data!,
           isLoading: false,
           error: null,
         );

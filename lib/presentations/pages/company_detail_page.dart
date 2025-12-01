@@ -5,8 +5,16 @@ import 'package:flutter_application_1/core/widgets/widgets.dart';
 import 'package:flutter_application_1/presentations/widgets/card_item_job.dart';
 import 'package:flutter_application_1/core/providers/company_provider.dart';
 import 'package:flutter_application_1/core/models/job.dart';
+import 'package:go_router/go_router.dart';
+import 'package:flutter_application_1/core/providers/application_provider.dart';
+import 'package:flutter_application_1/core/providers/auth_provider.dart';
+import 'package:flutter_application_1/core/providers/saved_company_provider.dart';
+import 'package:flutter_application_1/core/utils/salary_formatter.dart';
+import 'package:flutter_application_1/presentations/pages/company_jobs_page.dart';
+import 'package:flutter_application_1/presentations/pages/featured_companies_page.dart';
 
-class CompanyDetailPage extends ConsumerWidget {
+
+class CompanyDetailPage extends ConsumerStatefulWidget {
   final int? companyId;
   final String companyName;
   final String category;
@@ -29,7 +37,25 @@ class CompanyDetailPage extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CompanyDetailPage> createState() => _CompanyDetailPageState();
+}
+
+class _CompanyDetailPageState extends ConsumerState<CompanyDetailPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Load saved jobs when page initializes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final currentUser = ref.read(currentUserProvider);
+      if (currentUser != null) {
+        ref.read(applicationProvider.notifier).getSavedJobs(currentUser.userId);
+        ref.read(savedCompaniesNotifierProvider.notifier).getSavedCompanies(currentUser.userId);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       extendBodyBehindAppBar: true,
@@ -41,9 +67,62 @@ class CompanyDetailPage extends ConsumerWidget {
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.bookmark_border, color: Colors.white),
-            onPressed: () {},
+          Consumer(
+            builder: (context, ref, child) {
+              // Check if company is saved
+              final savedCompanies = ref.watch(savedCompaniesProvider);
+              final isSaved = widget.companyId != null && 
+                  savedCompanies.any((sc) => sc.company.id == widget.companyId);
+              
+              return IconButton(
+                icon: Icon(
+                  isSaved ? Icons.bookmark : Icons.bookmark_border,
+                  color: Colors.white,
+                ),
+                onPressed: () {
+                  if (widget.companyId == null) return;
+                  
+                  final currentUser = ref.read(currentUserProvider);
+                  if (currentUser == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Vui lòng đăng nhập để lưu công ty'),
+                        backgroundColor: Colors.orange,
+                      ),
+                    );
+                    return;
+                  }
+                  
+                  if (isSaved) {
+                    // Unsave company
+                    ref.read(savedCompaniesNotifierProvider.notifier).unsaveCompany(
+                      currentUser.userId,
+                      widget.companyId!,
+                    );
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Đã bỏ lưu công ty'),
+                        duration: Duration(seconds: 2),
+                        backgroundColor: Color(0xFF6B7280),
+                      ),
+                    );
+                  } else {
+                    // Save company
+                    ref.read(savedCompaniesNotifierProvider.notifier).saveCompany(
+                      currentUser.userId,
+                      widget.companyId!,
+                    );
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Đã lưu công ty'),
+                        duration: Duration(seconds: 2),
+                        backgroundColor: Color(0xFF10B981),
+                      ),
+                    );
+                  }
+                },
+              );
+            },
           ),
         ],
       ),
@@ -86,7 +165,7 @@ class CompanyDetailPage extends ConsumerWidget {
                       width: 68,
                       height: 68,
                       child: Image.asset(
-                        logoAsset,
+                        widget.logoAsset,
                         fit: BoxFit.contain,
                       ),
                     ),
@@ -95,7 +174,7 @@ class CompanyDetailPage extends ConsumerWidget {
                   
                   // Company Name
                   Text(
-                    companyName,
+                    widget.companyName,
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
@@ -117,7 +196,7 @@ class CompanyDetailPage extends ConsumerWidget {
                       ),
                     ),
                     child: Text(
-                      category,
+                      widget.category,
                       style: const TextStyle(
                         fontSize: 14,
                         color: Colors.white,
@@ -128,13 +207,63 @@ class CompanyDetailPage extends ConsumerWidget {
                   const SizedBox(height: 16),
                   
                   // Follow Button
-                  AppButton(
-                    text: 'Theo dõi công ty',
-                    onPressed: () {},
-                    icon: Icons.add,
-                    backgroundColor: Colors.white,
-                    textColor: const Color(0xFF4285F4),
-                    width: double.infinity,
+                  Consumer(
+                    builder: (context, ref, child) {
+                      // Check if company is saved
+                      final savedCompanies = ref.watch(savedCompaniesProvider);
+                      final isSaved = widget.companyId != null && 
+                          savedCompanies.any((sc) => sc.company.id == widget.companyId);
+                      
+                      return AppButton(
+                        text: isSaved ? 'Đang theo dõi' : 'Theo dõi công ty',
+                        onPressed: () {
+                          if (widget.companyId == null) return;
+                          
+                          final currentUser = ref.read(currentUserProvider);
+                          if (currentUser == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Vui lòng đăng nhập để lưu công ty'),
+                                backgroundColor: Colors.orange,
+                              ),
+                            );
+                            return;
+                          }
+                          
+                          if (isSaved) {
+                            // Unsave company
+                            ref.read(savedCompaniesNotifierProvider.notifier).unsaveCompany(
+                              currentUser.userId,
+                              widget.companyId!,
+                            );
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Đã bỏ theo dõi công ty'),
+                                duration: Duration(seconds: 2),
+                                backgroundColor: Color(0xFF6B7280),
+                              ),
+                            );
+                          } else {
+                            // Save company
+                            ref.read(savedCompaniesNotifierProvider.notifier).saveCompany(
+                              currentUser.userId,
+                              widget.companyId!,
+                            );
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Đã theo dõi công ty'),
+                                duration: Duration(seconds: 2),
+                                backgroundColor: Color(0xFF10B981),
+                              ),
+                            );
+                          }
+                        },
+                        icon: isSaved ? Icons.check : Icons.add,
+                        backgroundColor: isSaved ? const Color(0xFFE5E7EB) : Colors.white,
+                        textColor: isSaved ? const Color(0xFF6B7280) : const Color(0xFF4285F4),
+                        width: double.infinity,
+                      );
+                    },
                   ),
                 ],
               ),
@@ -150,7 +279,7 @@ class CompanyDetailPage extends ConsumerWidget {
                   Expanded(
                     child: _buildStatCard(
                       Icons.work_outline,
-                      '${(employeeCount ?? 1000) ~/ 100}+',
+                      '${(widget.employeeCount ?? 1000) ~/ 100}+',
                       'Việc làm',
                       const Color(0xFF4285F4),
                     ),
@@ -159,7 +288,7 @@ class CompanyDetailPage extends ConsumerWidget {
                   Expanded(
                     child: _buildStatCard(
                       Icons.people_outline,
-                      '${employeeCount ?? 1000}+',
+                      '${widget.employeeCount ?? 1000}+',
                       'Nhân viên',
                       const Color(0xFF26C281),
                     ),
@@ -198,19 +327,19 @@ class CompanyDetailPage extends ConsumerWidget {
                   _buildInfoRow(
                     Icons.location_on_outlined,
                     'Địa điểm',
-                    location ?? 'Hà Nội, Việt Nam',
+                    widget.location ?? 'Hà Nội, Việt Nam',
                   ),
                   const SizedBox(height: 12),
                   _buildInfoRow(
                     Icons.people_outline,
                     'Quy mô',
-                    '${employeeCount ?? 1000}+ nhân viên',
+                    '${widget.employeeCount ?? 1000}+ nhân viên',
                   ),
                   const SizedBox(height: 12),
                   _buildInfoRow(
                     Icons.language,
                     'Website',
-                    website ?? 'www.company.com',
+                    widget.website ?? 'www.company.com',
                   ),
                   const SizedBox(height: 24),
                   
@@ -238,28 +367,7 @@ class CompanyDetailPage extends ConsumerWidget {
                   ),
                   const SizedBox(height: 24),
                   
-                  // Description
-                  const Text(
-                    'Giới thiệu',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    description ?? 
-                    'Công ty hàng đầu trong lĩnh vực $category, cung cấp các giải pháp và dịch vụ chất lượng cao cho khách hàng. Chúng tôi luôn tìm kiếm những tài năng xuất sắc để cùng phát triển và xây dựng tương lai tốt đẹp hơn.',
-                    style: const TextStyle(
-                      fontSize: 15,
-                      color: AppColors.textSecondary,
-                      height: 1.6,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  
-                  // Jobs Section
+                  // Jobs Section Header
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -272,7 +380,20 @@ class CompanyDetailPage extends ConsumerWidget {
                         ),
                       ),
                       TextButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          if (widget.companyId != null) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => CompanyJobsPage(
+                                  companyId: widget.companyId!,
+                                  companyName: widget.companyName,
+                                  logoAsset: widget.logoAsset,
+                                ),
+                              ),
+                            );
+                          }
+                        },
                         child: const Text(
                           'Xem tất cả',
                           style: TextStyle(
@@ -286,68 +407,131 @@ class CompanyDetailPage extends ConsumerWidget {
                   ),
                   const SizedBox(height: 12),
                   
-                  // Job Cards from API
+                  // Job Cards and Description from API
                   Consumer(
                     builder: (context, ref, child) {
-                      if (companyId == null) {
-                        return const Padding(
-                          padding: EdgeInsets.all(24.0),
-                          child: Text(
-                            'Không có thông tin công ty',
-                            style: TextStyle(color: AppColors.textSecondary),
-                          ),
+                      if (widget.companyId == null) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Show description from widget if no companyId
+                            const Text(
+                              'Giới thiệu',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              widget.description ?? 
+                              'Công ty hàng đầu trong lĩnh vực ${widget.category}, cung cấp các giải pháp và dịch vụ chất lượng cao cho khách hàng.',
+                              style: const TextStyle(
+                                fontSize: 15,
+                                color: AppColors.textSecondary,
+                                height: 1.6,
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            const Padding(
+                              padding: EdgeInsets.all(24.0),
+                              child: Text(
+                                'Không có thông tin công ty',
+                                style: TextStyle(color: AppColors.textSecondary),
+                              ),
+                            ),
+                          ],
                         );
                       }
 
-                      final companyDetailsAsync = ref.watch(companyDetailsProvider(companyId!));
+                      final companyDetailsAsync = ref.watch(companyDetailsProvider(widget.companyId!));
 
                       return companyDetailsAsync.when(
                         data: (companyDetails) {
                           final jobsData = companyDetails.jobs;
-
-                          if (jobsData.isEmpty) {
-                            return const Padding(
-                              padding: EdgeInsets.all(24.0),
-                              child: Text(
-                                'Công ty hiện không có việc làm nào',
-                                style: TextStyle(color: AppColors.textSecondary),
-                              ),
-                            );
-                          }
+                          
+                          // Use description from API if available, otherwise use widget description
+                          final displayDescription = companyDetails.description?.isNotEmpty == true 
+                              ? companyDetails.description! 
+                              : (widget.description ?? 
+                                 'Công ty hàng đầu trong lĩnh vực ${widget.category}, cung cấp các giải pháp và dịch vụ chất lượng cao cho khách hàng.');
 
                           return Column(
-                            children: jobsData.take(3).map((jobJson) {
-                              final job = Job.fromJson(jobJson);
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Jobs list
+                              if (jobsData.isEmpty)
+                                const Padding(
+                                  padding: EdgeInsets.all(24.0),
+                                  child: Text(
+                                    'Công ty hiện không có việc làm nào',
+                                    style: TextStyle(color: AppColors.textSecondary),
+                                  ),
+                                )
+                              else
+                                Column(
+                                  children: jobsData.take(3).map((jobJson) {
+                                    final job = Job.fromJson(jobJson);
+                                    
+                                    // Get saved jobs list to check if this job is saved
+                                    final savedJobs = ref.watch(savedJobsProvider);
+                                    final isSaved = savedJobs.any((savedJob) => savedJob.job?.jobId == job.jobId);
 
-                              String salaryDisplay = 'Thỏa thuận';
-                              if (job.salaryMin != null && job.salaryMax != null) {
-                                final minInMillions = (job.salaryMin! / 1000000).toStringAsFixed(0);
-                                final maxInMillions = (job.salaryMax! / 1000000).toStringAsFixed(0);
-                                salaryDisplay = '$minInMillions - $maxInMillions triệu /tháng';
-                              } else if (job.salaryRange != null) {
-                                salaryDisplay = job.salaryRange!;
-                              }
-
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 12),
-                                child: CardItemJob(
-                                  titleJob: job.title,
-                                  conpanyJob: companyName,
-                                  location: job.location,
-                                  workLocation: job.workLocation ?? 'Office',
-                                  workingTime: job.jobType ?? 'Full Time',
-                                  workSalary: salaryDisplay,
-                                  logoCompany: logoAsset,
-                                  onTap: () {
-                                    Navigator.pushNamed(
-                                      context,
-                                      '/job-detail',
-                                      arguments: job.jobId,
+                                    // Use SalaryFormatter for consistent display
+                                    final salaryDisplay = SalaryFormatter.formatSalaryWithPeriod(
+                                      salaryMin: job.salaryMin,
+                                      salaryMax: job.salaryMax,
+                                      salaryType: job.salaryType,
                                     );
-                                  },
+
+                                    return Padding(
+                                      padding: const EdgeInsets.only(bottom: 12),
+                                      child: CardItemJob(
+                                        titleJob: job.title,
+                                        conpanyJob: widget.companyName,
+                                        location: job.location,
+                                        workLocation: job.workLocation ?? 'Office',
+                                        workingTime: job.jobType ?? 'Full Time',
+                                        workSalary: salaryDisplay,
+                                        logoCompany: widget.logoAsset,
+                                        isSaved: isSaved,
+                                        onBookmarkTap: () {
+                                          if (isSaved) {
+                                            _handleUnsaveJob(job.jobId);
+                                          } else {
+                                            _handleSaveJob(job.jobId);
+                                          }
+                                        },
+                                        onTap: () {
+                                          context.push('/jobDetail/${job.jobId}');
+                                        },
+                                      ),
+                                    );
+                                  }).toList(),
                                 ),
-                              );
-                            }).toList(),
+                              
+                              const SizedBox(height: 24),
+                              
+                              // Description section
+                              const Text(
+                                'Giới thiệu',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                displayDescription,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  color: AppColors.textSecondary,
+                                  height: 1.6,
+                                ),
+                              ),
+                            ],
                           );
                         },
                         loading: () => const Padding(
@@ -366,7 +550,7 @@ class CompanyDetailPage extends ConsumerWidget {
                               ),
                               const SizedBox(height: 8),
                               TextButton(
-                                onPressed: () => ref.invalidate(companyDetailsProvider(companyId!)),
+                                onPressed: () => ref.invalidate(companyDetailsProvider(widget.companyId!)),
                                 child: const Text('Thử lại'),
                               ),
                             ],
@@ -375,6 +559,7 @@ class CompanyDetailPage extends ConsumerWidget {
                       );
                     },
                   ),
+
                   const SizedBox(height: 24),
                   
                   // Related Companies Section
@@ -390,7 +575,15 @@ class CompanyDetailPage extends ConsumerWidget {
                         ),
                       ),
                       TextButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          // Navigate to FeaturedCompaniesPage
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const FeaturedCompaniesPage(),
+                            ),
+                          );
+                        },
                         child: const Text(
                           'Xem tất cả',
                           style: TextStyle(
@@ -407,42 +600,72 @@ class CompanyDetailPage extends ConsumerWidget {
               ),
             ),
             
-            // Related Companies Horizontal List
-            SizedBox(
-              height: 240,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                children: [
-                  _buildRelatedCompanyCard(
-                    'FPT Software',
-                    'Công nghệ',
-                    'assets/logo_lutech.png',
-                    '100+',
+            // Related Companies Horizontal List from API
+            Consumer(
+              builder: (context, ref, child) {
+                final companiesAsync = ref.watch(featuredCompaniesProvider);
+                
+                return companiesAsync.when(
+                  data: (companies) {
+                    if (companies.isEmpty) {
+                      return const SizedBox(
+                        height: 240,
+                        child: Center(
+                          child: Text('Không có công ty nào'),
+                        ),
+                      );
+                    }
+                    
+                    return SizedBox(
+                      height: 240,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        itemCount: companies.length > 6 ? 6 : companies.length,
+                        separatorBuilder: (context, index) => const SizedBox(width: 12),
+                        itemBuilder: (context, index) {
+                          final company = companies[index];
+                          return GestureDetector(
+                            onTap: () {
+                              context.pushNamed(
+                                'companyDetail',
+                                pathParameters: {'companyId': company.id.toString()},
+                                extra: {
+                                  'companyName': company.name,
+                                  'category': company.industry,
+                                  'logoAsset': company.logo ?? 'assets/logo_lutech.png',
+                                  'location': company.location,
+                                  'employeeCount': company.employeeCount ?? 0,
+                                  'website': company.website ?? '',
+                                  'description': company.description,
+                                },
+                              );
+                            },
+                            child: _buildRelatedCompanyCard(
+                              company.name,
+                              company.industry,
+                              company.logo ?? 'assets/logo_lutech.png',
+                              '${company.totalJobs}+',
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                  loading: () => const SizedBox(
+                    height: 240,
+                    child: Center(
+                      child: CircularProgressIndicator(color: AppColors.primary),
+                    ),
                   ),
-                  const SizedBox(width: 12),
-                  _buildRelatedCompanyCard(
-                    'Vietcombank',
-                    'Ngân hàng',
-                    'assets/logo_google.png',
-                    '200+',
+                  error: (error, stack) => const SizedBox(
+                    height: 240,
+                    child: Center(
+                      child: Text('Không thể tải danh sách công ty'),
+                    ),
                   ),
-                  const SizedBox(width: 12),
-                  _buildRelatedCompanyCard(
-                    'Vingroup',
-                    'Tập đoàn',
-                    'assets/logo_lutech.png',
-                    '500+',
-                  ),
-                  const SizedBox(width: 12),
-                  _buildRelatedCompanyCard(
-                    'Masan Group',
-                    'Sản xuất',
-                    'assets/logo_google.png',
-                    '150+',
-                  ),
-                ],
-              ),
+                );
+              },
             ),
             const SizedBox(height: 24),
           ],
@@ -633,5 +856,79 @@ class CompanyDetailPage extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  void _handleSaveJob(int jobId) async {
+    final currentUser = ref.read(currentUserProvider);
+    if (currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Vui lòng đăng nhập để lưu việc làm'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    // Check if job is already saved
+    final savedJobs = ref.read(savedJobsProvider);
+    final isAlreadySaved = savedJobs.any((savedJob) => savedJob.job?.jobId == jobId);
+    
+    if (isAlreadySaved) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Việc làm này đã được lưu rồi!'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    try {
+      await ref.read(applicationProvider.notifier).saveJob(currentUser.userId, jobId);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đã lưu việc làm thành công!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _handleUnsaveJob(int jobId) async {
+    final currentUser = ref.read(currentUserProvider);
+    if (currentUser == null) return;
+
+    try {
+      await ref.read(applicationProvider.notifier).unsaveJob(currentUser.userId, jobId);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đã bỏ lưu việc làm'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }

@@ -11,9 +11,11 @@ class Job {
   final String? salaryRange;
   final int? salaryMin;
   final int? salaryMax;
+  final String? salaryType; // RANGE, NEGOTIABLE, UP_TO, FROM, FIXED
   final String? workTime;
   final ExperienceRequired? experienceRequired;
-  final JobInformation? jobInformation;
+  // Note: jobInformation is no longer returned in Job API response
+  // It's now a separate table with job_id reference
   final Company? company;
   final List<Skill> skills;
   final List<Category> categories;
@@ -31,9 +33,9 @@ class Job {
     this.salaryRange,
     this.salaryMin,
     this.salaryMax,
+    this.salaryType,
     this.workTime,
     this.experienceRequired,
-    this.jobInformation,
     this.company,
     this.skills = const [],
     this.categories = const [],
@@ -55,12 +57,10 @@ class Job {
       salaryRange: json['salaryRange'],
       salaryMin: json['salaryMin'],
       salaryMax: json['salaryMax'],
+      salaryType: json['salaryType'],
       workTime: json['workTime'],
       experienceRequired: json['experience'] != null
           ? ExperienceRequired.fromJson(json['experience'])
-          : null,
-      jobInformation: json['information'] != null
-          ? JobInformation.fromJson(json['information'])
           : null,
       company: json['company'] != null
           ? Company.fromJson(json['company'])
@@ -92,7 +92,6 @@ class Job {
       if (salaryRange != null) 'salaryRange': salaryRange,
       if (workTime != null) 'workTime': workTime,
       if (experienceRequired != null) 'experienceRequired': experienceRequired!.toJson(),
-      if (jobInformation != null) 'jobInformation': jobInformation!.toJson(),
       if (company != null) 'company': company!.toJson(),
       'skills': skills.map((skill) => skill.toJson()).toList(),
       'categories': categories.map((category) => category.toJson()).toList(),
@@ -279,39 +278,162 @@ class JobSearchRequest {
 }
 
 class JobFilterRequest {
+  final String? title;
   final String? jobType;
   final String? workLocation;
   final String? location;
   final int? categoryId;
+  final List<int>? categoryIds;
   final int? skillId;
-  final int? page;
-  final int? size;
-  final String? sortBy;
-  final String? sortOrder;
+  final List<int>? skillIds;
+  final double? salaryMin;
+  final double? salaryMax;
+  final int? experienceRequiredId;
+  final String? companyName;
+  final int page;
+  final int size;
+  final String sortBy;
+  final String sortOrder;
 
   JobFilterRequest({
+    this.title,
     this.jobType,
     this.workLocation,
     this.location,
     this.categoryId,
+    this.categoryIds,
     this.skillId,
-    this.page,
-    this.size,
-    this.sortBy,
-    this.sortOrder,
+    this.skillIds,
+    this.salaryMin,
+    this.salaryMax,
+    this.experienceRequiredId,
+    this.companyName,
+    this.page = 0,
+    this.size = 20,
+    this.sortBy = 'postedAt',
+    this.sortOrder = 'DESC',
   });
 
   Map<String, dynamic> toJson() {
     return {
+      if (title != null) 'title': title,
       if (jobType != null) 'jobType': jobType,
       if (workLocation != null) 'workLocation': workLocation,
       if (location != null) 'location': location,
       if (categoryId != null) 'categoryId': categoryId,
+      if (categoryIds != null) 'categoryIds': categoryIds,
       if (skillId != null) 'skillId': skillId,
-      if (page != null) 'page': page,
-      if (size != null) 'size': size,
-      if (sortBy != null) 'sortBy': sortBy,
-      if (sortOrder != null) 'sortOrder': sortOrder,
+      if (skillIds != null) 'skillIds': skillIds,
+      if (salaryMin != null) 'salaryMin': salaryMin,
+      if (salaryMax != null) 'salaryMax': salaryMax,
+      if (experienceRequiredId != null) 'experienceRequiredId': experienceRequiredId,
+      if (companyName != null) 'companyName': companyName,
+      'page': page,
+      'size': size,
+      'sortBy': sortBy,
+      'sortOrder': sortOrder,
     };
+  }
+
+  // Helper method to convert to query parameters for GET requests
+  Map<String, dynamic> toQueryParams() {
+    final params = <String, dynamic>{};
+    
+    if (title != null) params['title'] = title;
+    if (location != null) params['location'] = location;
+    if (categoryIds != null && categoryIds!.isNotEmpty) {
+      params['categoryIds'] = categoryIds;
+    }
+    if (skillIds != null && skillIds!.isNotEmpty) {
+      params['skillIds'] = skillIds;
+    }
+    if (salaryMin != null) params['salaryMin'] = salaryMin;
+    if (salaryMax != null) params['salaryMax'] = salaryMax;
+    if (experienceRequiredId != null) {
+      params['experienceRequiredId'] = experienceRequiredId;
+    }
+    if (companyName != null) params['companyName'] = companyName;
+    if (jobType != null) params['jobType'] = jobType;
+    if (workLocation != null) params['workLocation'] = workLocation;
+    
+    return params;
+  }
+
+  // Helper method to check if any filters are active
+  bool get hasActiveFilters {
+    return title != null ||
+        location != null ||
+        (categoryIds != null && categoryIds!.isNotEmpty) ||
+        (skillIds != null && skillIds!.isNotEmpty) ||
+        salaryMin != null ||
+        salaryMax != null ||
+        experienceRequiredId != null ||
+        companyName != null ||
+        jobType != null ||
+        workLocation != null;
+  }
+
+  // Count active filters
+  int get activeFilterCount {
+    int count = 0;
+    if (title != null) count++;
+    if (location != null) count++;
+    if (categoryIds != null && categoryIds!.isNotEmpty) count++;
+    if (skillIds != null && skillIds!.isNotEmpty) count++;
+    if (salaryMin != null || salaryMax != null) count++;
+    if (experienceRequiredId != null) count++;
+    if (companyName != null) count++;
+    if (jobType != null) count++;
+    if (workLocation != null) count++;
+    return count;
+  }
+
+  // Create a copy with updated fields
+  JobFilterRequest copyWith({
+    String? title,
+    String? jobType,
+    String? workLocation,
+    String? location,
+    int? categoryId,
+    List<int>? categoryIds,
+    int? skillId,
+    List<int>? skillIds,
+    double? salaryMin,
+    double? salaryMax,
+    int? experienceRequiredId,
+    String? companyName,
+    int? page,
+    int? size,
+    String? sortBy,
+    String? sortOrder,
+  }) {
+    return JobFilterRequest(
+      title: title ?? this.title,
+      jobType: jobType ?? this.jobType,
+      workLocation: workLocation ?? this.workLocation,
+      location: location ?? this.location,
+      categoryId: categoryId ?? this.categoryId,
+      categoryIds: categoryIds ?? this.categoryIds,
+      skillId: skillId ?? this.skillId,
+      skillIds: skillIds ?? this.skillIds,
+      salaryMin: salaryMin ?? this.salaryMin,
+      salaryMax: salaryMax ?? this.salaryMax,
+      experienceRequiredId: experienceRequiredId ?? this.experienceRequiredId,
+      companyName: companyName ?? this.companyName,
+      page: page ?? this.page,
+      size: size ?? this.size,
+      sortBy: sortBy ?? this.sortBy,
+      sortOrder: sortOrder ?? this.sortOrder,
+    );
+  }
+
+  // Clear all filters
+  JobFilterRequest clearFilters() {
+    return JobFilterRequest(
+      page: page,
+      size: size,
+      sortBy: sortBy,
+      sortOrder: sortOrder,
+    );
   }
 }

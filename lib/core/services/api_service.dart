@@ -1,11 +1,11 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:http/http.dart' as http;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../constants/api_constants.dart';
 import '../models/api_response.dart';
 import '../models/user.dart';
-import '../models/job.dart';
+import '../models/job.dart' show Job, Category, Skill, Company, ExperienceRequired, JobSearchRequest, JobFilterRequest;
 import '../models/application.dart';
 import '../models/application_request.dart';
 import '../models/profile.dart';
@@ -291,6 +291,98 @@ class ApiService {
     }
   }
 
+  // Filter Jobs with search (GET with query params)
+  Future<ApiResponse<List<Job>>> filterJobsWithSearch(JobFilterRequest filter) async {
+    try {
+      final queryParams = filter.toQueryParams();
+      final uri = Uri.parse('${ApiConstants.baseUrl}/api/jobs/search')
+          .replace(queryParameters: queryParams.map((key, value) => MapEntry(key, value.toString())));
+      
+      if (kDebugMode) {
+        print('🔍 Search Jobs API: $uri');
+      }
+      
+      final response = await http.get(
+        uri,
+        headers: ApiConstants.defaultHeaders,
+      );
+
+      if (kDebugMode) {
+        print('📡 Search Response Status: ${response.statusCode}');
+        print('📄 Search Response Body: ${response.body}');
+      }
+
+      final jsonResponse = jsonDecode(response.body);
+      
+      // Handle case where data is directly a List
+      if (jsonResponse is List) {
+        return ApiResponse<List<Job>>(
+          status: response.statusCode,
+          message: 'Success',
+          data: jsonResponse
+              .map((job) => Job.fromJson(job))
+              .toList(),
+        );
+      }
+      
+      // Handle case where data is wrapped in ApiResponse format
+      if (jsonResponse is Map<String, dynamic>) {
+        try {
+          final status = jsonResponse['status'] ?? response.statusCode;
+          final message = jsonResponse['message'] ?? 'Success';
+          final data = jsonResponse['data'];
+          
+          // Handle Page format (Spring Boot pagination)
+          if (data is Map<String, dynamic> && data.containsKey('content')) {
+            final content = data['content'] as List;
+            return ApiResponse<List<Job>>(
+              status: status,
+              message: message,
+              data: content
+                  .map((job) => Job.fromJson(job))
+                  .toList(),
+            );
+          }
+          // Handle direct List format
+          else if (data is List) {
+            return ApiResponse<List<Job>>(
+              status: status,
+              message: message,
+              data: data
+                  .map((job) => Job.fromJson(job))
+                  .toList(),
+            );
+          } else {
+            return ApiResponse<List<Job>>(
+              status: status,
+              message: message,
+              data: [],
+            );
+          }
+        } catch (parseError) {
+          return ApiResponse<List<Job>>(
+            status: 500,
+            message: 'Parse error: $parseError',
+            error: parseError.toString(),
+          );
+        }
+      }
+      
+      // Fallback - return empty list
+      return ApiResponse<List<Job>>(
+        status: response.statusCode,
+        message: 'No results found',
+        data: [],
+      );
+    } catch (e) {
+      return ApiResponse<List<Job>>(
+        status: 500,
+        message: 'Network error: $e',
+        error: e.toString(),
+      );
+    }
+  }
+
   Future<ApiResponse<List<Job>>> filterJobs(JobFilterRequest request) async {
     try {
       final url = '${ApiConstants.baseUrl}${ApiConstants.jobFilterEndpoint}';
@@ -460,6 +552,113 @@ class ApiService {
     }
   }
 
+  // Category APIs
+  Future<ApiResponse<List<Category>>> getAllCategories() async {
+    try {
+      final url = '${ApiConstants.baseUrl}/categories';
+      print('🔍 Get All Categories API: $url');
+      
+      final response = await http.get(
+        Uri.parse(url),
+        headers: ApiConstants.defaultHeaders,
+      );
+
+      if (kDebugMode) {
+        print('📡 Categories Response Status: ${response.statusCode}');
+        print('📄 Categories Response Body: ${response.body}');
+      }
+
+      final jsonResponse = jsonDecode(response.body);
+      
+      if (jsonResponse is Map<String, dynamic>) {
+        final status = jsonResponse['status'] ?? response.statusCode;
+        final message = jsonResponse['message'] ?? 'Success';
+        final data = jsonResponse['data'];
+        
+        if (data is List) {
+          return ApiResponse<List<Category>>(
+            status: status,
+            message: message,
+            data: data.map((cat) => Category.fromJson(cat)).toList(),
+          );
+        }
+      }
+      
+      return ApiResponse<List<Category>>(
+        status: response.statusCode,
+        message: 'No categories found',
+        data: [],
+      );
+    } catch (e) {
+      return ApiResponse<List<Category>>(
+        status: 500,
+        message: 'Network error: $e',
+        error: e.toString(),
+      );
+    }
+  }
+
+  Future<ApiResponse<List<Job>>> getJobsByCategory(
+    int categoryId, {
+    int page = 0,
+    int size = 20,
+    String sortBy = 'postedAt',
+    String sortOrder = 'DESC',
+  }) async {
+    try {
+      final url = '${ApiConstants.baseUrl}/jobs/category/$categoryId?page=$page&size=$size&sortBy=$sortBy&sortOrder=$sortOrder';
+      print('🔍 Get Jobs By Category API: $url');
+      
+      final response = await http.get(
+        Uri.parse(url),
+        headers: ApiConstants.defaultHeaders,
+      );
+
+      if (kDebugMode) {
+        print('📡 Jobs By Category Response Status: ${response.statusCode}');
+        print('📄 Jobs By Category Response Body: ${response.body}');
+      }
+
+      final jsonResponse = jsonDecode(response.body);
+      
+      if (jsonResponse is Map<String, dynamic>) {
+        final status = jsonResponse['status'] ?? response.statusCode;
+        final message = jsonResponse['message'] ?? 'Success';
+        final data = jsonResponse['data'];
+        
+        // Handle Page format (Spring Boot pagination)
+        if (data is Map<String, dynamic> && data.containsKey('content')) {
+          final content = data['content'] as List;
+          return ApiResponse<List<Job>>(
+            status: status,
+            message: message,
+            data: content.map((job) => Job.fromJson(job)).toList(),
+          );
+        }
+        // Handle direct List format
+        else if (data is List) {
+          return ApiResponse<List<Job>>(
+            status: status,
+            message: message,
+            data: data.map((job) => Job.fromJson(job)).toList(),
+          );
+        }
+      }
+      
+      return ApiResponse<List<Job>>(
+        status: response.statusCode,
+        message: 'No jobs found',
+        data: [],
+      );
+    } catch (e) {
+      return ApiResponse<List<Job>>(
+        status: 500,
+        message: 'Network error: $e',
+        error: e.toString(),
+      );
+    }
+  }
+
   Future<ApiResponse<Job>> getJobDetail(int jobId) async {
     try {
       final url = '${ApiConstants.baseUrl}${ApiConstants.jobsEndpoint}/$jobId';
@@ -613,6 +812,122 @@ class ApiService {
     try {
       final response = await http.delete(
         Uri.parse('${ApiConstants.baseUrl}${ApiConstants.savedJobsEndpoint}/$jobId'),
+        headers: _headers,
+      );
+
+      final jsonResponse = jsonDecode(response.body);
+      return ApiResponse<void>.fromJson(
+        jsonResponse,
+        (data) => null,
+      );
+    } catch (e) {
+      return ApiResponse<void>(
+        status: 500,
+        message: 'Network error: $e',
+        error: e.toString(),
+      );
+    }
+  }
+
+  // Saved Companies APIs
+  Future<ApiResponse<dynamic>> saveCompany(int seekerId, int companyId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConstants.baseUrl}${ApiConstants.savedCompaniesEndpoint}/$companyId'),
+        headers: _headers,
+      );
+
+      final jsonResponse = jsonDecode(response.body);
+      return ApiResponse.fromJson(
+        jsonResponse,
+        (data) => data, // Return raw data since we have SavedCompany model
+      );
+    } catch (e) {
+      return ApiResponse(
+        status: 500,
+        message: 'Network error: $e',
+        error: e.toString(),
+      );
+    }
+  }
+
+  Future<ApiResponse<List<Map<String, dynamic>>>> getSavedCompanies(int seekerId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiConstants.baseUrl}${ApiConstants.savedCompaniesEndpoint}'),
+        headers: _headers,
+      );
+
+      // Check for token expiry
+      if (_isTokenExpiredResponse(response)) {
+        await _handleTokenExpiry();
+        return ApiResponse<List<Map<String, dynamic>>>(
+          status: 401,
+          message: 'Token expired. Please login again.',
+          data: null,
+        );
+      }
+
+      final jsonResponse = jsonDecode(response.body);
+      
+      // Handle case where data is directly a List
+      if (jsonResponse is List) {
+        return ApiResponse<List<Map<String, dynamic>>>(
+          status: response.statusCode,
+          message: 'Success',
+          data: jsonResponse.cast<Map<String, dynamic>>(),
+        );
+      }
+      
+      // Handle case where data is wrapped in ApiResponse format
+      if (jsonResponse is Map<String, dynamic>) {
+        try {
+          final status = jsonResponse['status'] ?? 0;
+          final message = jsonResponse['message'] ?? '';
+          final data = jsonResponse['data'] as List?;
+          
+          if (data != null) {
+            return ApiResponse<List<Map<String, dynamic>>>(
+              status: status,
+              message: message,
+              data: data.cast<Map<String, dynamic>>(),
+            );
+          } else {
+            return ApiResponse<List<Map<String, dynamic>>>(
+              status: status,
+              message: message,
+              data: [],
+            );
+          }
+        } catch (e) {
+          if (kDebugMode) print('❌ Error parsing wrapped response: $e');
+          return ApiResponse<List<Map<String, dynamic>>>(
+            status: 500,
+            message: 'Error parsing saved companies: $e',
+            error: e.toString(),
+          );
+        }
+      }
+      
+      // Fallback - return empty list
+      return ApiResponse<List<Map<String, dynamic>>>(
+        status: response.statusCode,
+        message: 'Unknown response format',
+        data: [],
+      );
+    } catch (e) {
+      return ApiResponse<List<Map<String, dynamic>>>(
+        status: 500,
+        message: 'Network error: $e',
+        error: e.toString(),
+      );
+    }
+  }
+
+  Future<ApiResponse<void>> unsaveCompany(int seekerId, int companyId) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('${ApiConstants.baseUrl}${ApiConstants.savedCompaniesEndpoint}/$companyId'),
         headers: _headers,
       );
 

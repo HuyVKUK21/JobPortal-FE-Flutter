@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_1/core/utils/size_config.dart';
 import 'package:flutter_application_1/core/widgets/build_tag.dart';
 import 'package:flutter_application_1/core/models/job.dart';
+import 'package:flutter_application_1/core/utils/salary_formatter.dart';
 
 class JobDetailInfomationHeader extends StatelessWidget {
   final Job job;
@@ -64,7 +65,11 @@ class JobDetailInfomationHeader extends StatelessWidget {
             ),
             SizedBox(height: 4),
             Text(
-              job.salaryRange ?? 'Thỏa thuận',
+              SalaryFormatter.formatSalary(
+                salaryMin: job.salaryMin,
+                salaryMax: job.salaryMax,
+                salaryType: job.salaryType,
+              ),
               style: TextStyle(
                 color: Colors.blueAccent,
                 fontWeight: FontWeight.w600,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_application_1/features/auth/presentation/pages/login_page.dart';
 import 'package:flutter_application_1/features/auth/presentation/pages/register_page.dart';
 import 'package:flutter_application_1/features/auth/presentation/pages/forgot_password_page.dart';
@@ -19,7 +20,7 @@ import 'package:flutter_application_1/presentations/pages/detail_job.dart';
 import 'package:flutter_application_1/presentations/pages/lastest_job_screen.dart';
 import 'package:flutter_application_1/presentations/pages/messages_screen.dart';
 import 'package:flutter_application_1/presentations/pages/notification_page_screen.dart';
-import 'package:flutter_application_1/presentations/pages/saved_job_screen.dart';
+import 'package:flutter_application_1/presentations/pages/saved_items_screen.dart';
 import 'package:flutter_application_1/presentations/pages/chat_detail_screen.dart';
 import 'package:flutter_application_1/core/models/conversation.dart';
 import 'package:flutter_application_1/presentations/wrapper/main_wrapper.dart';
@@ -30,7 +31,7 @@ import 'package:flutter_application_1/presentations/pages/settings/notification_
 import 'package:flutter_application_1/presentations/pages/settings/security_settings_screen.dart';
 import 'package:flutter_application_1/presentations/pages/settings/language_settings_screen.dart';
 import 'package:flutter_application_1/presentations/pages/settings/help_center_screen.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flutter_application_1/presentations/pages/company_detail_page.dart';
 
 // Wrapper widget to check auth state
 class _ProfileRouteWrapper extends ConsumerWidget {
@@ -93,9 +94,9 @@ class AppNavigationBar {
             navigatorKey: _shellNavigatorSaveJob,
             routes: <RouteBase>[
               GoRoute(
-                path: '/saveJobs',
-                name: 'saveJobs',
-                builder: (context, state) => const SavedJobScreen(),
+                path: '/savedItems',
+                name: 'savedItems',
+                builder: (context, state) => const SavedItemsScreen(),
               ),
             ],
           ),
@@ -164,6 +165,25 @@ class AppNavigationBar {
             jobId: jobId,
             jobTitle: jobTitle,
             companyName: companyName,
+          );
+        },
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/companyDetail/:companyId',
+        name: 'companyDetail',
+        builder: (context, state) {
+          final companyId = int.parse(state.pathParameters['companyId']!);
+          final extra = state.extra as Map<String, dynamic>?;
+          return CompanyDetailPage(
+            companyId: companyId,
+            companyName: extra?['companyName'] ?? '',
+            category: extra?['category'] ?? '',
+            logoAsset: extra?['logoAsset'] ?? 'assets/logo_lutech.png',
+            location: extra?['location'],
+            employeeCount: extra?['employeeCount'],
+            website: extra?['website'],
+            description: extra?['description'],
           );
         },
       ),

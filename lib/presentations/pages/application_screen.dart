@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_application_1/core/utils/app_screen_layout.dart';
 import 'package:flutter_application_1/core/constants/app_colors.dart';
 import 'package:flutter_application_1/core/providers/application_provider.dart';
+import 'package:flutter_application_1/core/utils/salary_formatter.dart';
 import 'package:flutter_application_1/core/providers/auth_provider.dart';
 import 'package:flutter_application_1/core/widgets/widgets.dart';
 import 'package:flutter_application_1/presentations/widgets/item_application_notification.dart';
@@ -160,7 +161,11 @@ class _ApplicationScreenState extends ConsumerState<ApplicationScreen> {
                   companyName: companyName,
                   companyLogo: 'assets/logo_lutech.png',
                   location: app.job?.location ?? 'N/A',
-                  salary: app.job?.salaryRange ?? 'Thỏa thuận',
+                  salary: SalaryFormatter.formatSalary(
+                    salaryMin: app.job?.salaryMin,
+                    salaryMax: app.job?.salaryMax,
+                    salaryType: app.job?.salaryType,
+                  ),
                   applicationStatus: status,
                 ),
               ),

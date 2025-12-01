@@ -4,6 +4,8 @@ import 'package:flutter_application_1/core/constants/app_colors.dart';
 import 'package:flutter_application_1/core/constants/app_dimensions.dart';
 import 'package:flutter_application_1/core/utils/app_screen_layout.dart';
 import 'package:flutter_application_1/core/utils/size_config.dart';
+import 'package:flutter_application_1/core/models/job.dart';
+import 'package:flutter_application_1/core/utils/salary_formatter.dart';
 import 'package:flutter_application_1/core/providers/job_provider.dart';
 import 'package:flutter_application_1/presentations/widgets/job_detail_infomation.dart';
 import 'package:flutter_application_1/presentations/widgets/job_detail_infomation_summary.dart';
@@ -136,7 +138,11 @@ class _DetailJobState extends ConsumerState<DetailJob> {
       if (job.company?.website != null) 'Website: ${job.company!.website}',
       'Loại hình công việc: ${job.jobType ?? 'Toàn thời gian'}',
       'Địa điểm làm việc: ${job.workLocation ?? 'Văn phòng'}',
-      'Mức lương: ${job.salaryRange ?? 'Thỏa thuận'}',
+      'Mức lương: ${SalaryFormatter.formatSalary(
+        salaryMin: job.salaryMin,
+        salaryMax: job.salaryMax,
+        salaryType: job.salaryType,
+      )}',
       'Thời gian làm việc: ${job.workTime ?? '8:00 - 17:00'}',
     ];
 

@@ -10,9 +10,10 @@ import 'package:flutter_application_1/presentations/widgets/card_item_job.dart';
 import 'package:flutter_application_1/presentations/widgets/header_section.dart';
 import 'package:flutter_application_1/presentations/widgets/job_category.dart';
 import 'package:flutter_application_1/presentations/widgets/enhanced_search_box.dart';
+import 'package:flutter_application_1/presentations/widgets/job_filter_bottom_sheet.dart';
 import 'package:flutter_application_1/presentations/widgets/title_category_header.dart';
+import 'package:flutter_application_1/core/models/job.dart';
 import 'package:flutter_application_1/presentations/widgets/featured_company_card.dart';
-import 'package:flutter_application_1/presentations/pages/company_detail_page.dart';
 import 'package:flutter_application_1/presentations/pages/featured_companies_page.dart';
 import 'package:flutter_application_1/presentations/pages/all_jobs_page.dart';
 import 'package:flutter_application_1/core/providers/job_provider.dart';
@@ -25,6 +26,9 @@ import 'package:flutter_application_1/core/constants/lottie_assets.dart';
 import 'package:flutter_application_1/presentations/pages/job_dashboard_page.dart';
 import 'package:flutter_application_1/presentations/widgets/job_type_distribution_card.dart';
 import 'package:flutter_application_1/core/providers/company_provider.dart';
+import 'package:flutter_application_1/core/providers/saved_company_provider.dart';
+import 'package:flutter_application_1/core/providers/category_provider.dart';
+import 'package:flutter_application_1/core/utils/salary_formatter.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -34,17 +38,22 @@ class HomePage extends ConsumerStatefulWidget {
 }
 
 class _HomePageState extends ConsumerState<HomePage> {
+  JobFilterRequest _currentFilter = JobFilterRequest();
+  int? _selectedCategoryId;
+  
   @override
   void initState() {
     super.initState();
     // Load jobs when page initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(jobProvider.notifier).getAllJobs();
+      ref.read(categoryProvider.notifier).loadCategories();
       
       // Load saved jobs if user is authenticated
       final currentUser = ref.read(currentUserProvider);
       if (currentUser != null) {
         ref.read(applicationProvider.notifier).getSavedJobs(currentUser.userId);
+        ref.read(savedCompaniesNotifierProvider.notifier).getSavedCompanies(currentUser.userId);
       }
     });
   }
@@ -63,15 +72,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     final savedJobs = ref.watch(savedJobsProvider);
     final isLoading = ref.watch(jobLoadingProvider);
     final error = ref.watch(jobErrorProvider);
-    
-
-    List<String> categories = [
-      'Tất cả',
-      'Tài chính',
-      'IT',
-      'Quản lý',
-      'Gia sư',
-    ];
+    final categories = ref.watch(categoriesListProvider);
     SizeConfig.init(context);
     
     // Show full-screen error if jobs API fails (most critical)
@@ -160,7 +161,32 @@ class _HomePageState extends ConsumerState<HomePage> {
               },
             ),
             const SizedBox(height: AppDimensions.space),
-            const EnhancedSearchBox(),
+            EnhancedSearchBox(
+              filterCount: _currentFilter.activeFilterCount,
+              onFilterTap: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (context) => JobFilterBottomSheet(
+                    initialFilter: _currentFilter,
+                    onApply: (filter) {
+                      setState(() {
+                        _currentFilter = filter;
+                      });
+                      // Apply filter
+                      ref.read(jobProvider.notifier).filterJobs(
+                        jobType: filter.jobType,
+                        workLocation: filter.workLocation,
+                        location: filter.location,
+                        categoryId: filter.categoryId,
+                        skillId: filter.skillId,
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
             const SizedBox(height: AppDimensions.space),
             Expanded(
               child: SingleChildScrollView(
@@ -372,27 +398,70 @@ class _HomePageState extends ConsumerState<HomePage> {
                                 separatorBuilder: (context, index) => const SizedBox(width: 12),
                                 itemBuilder: (context, index) {
                                   final company = companies[index];
+                                  
+                                  // Check if company is saved
+                                  final savedCompanies = ref.watch(savedCompaniesProvider);
+                                  final isSaved = savedCompanies.any((sc) => sc.company.id == company.id);
+                                  
                                   return FeaturedCompanyCard(
                                     companyName: company.name,
                                     category: company.industry,
                                     logoAsset: company.logo ?? 'assets/logo_lutech.png',
                                     salaryBadge: '${company.totalJobs}+ việc',
-                                    isFollowing: false,
-                                    onFollowTap: () {},
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => CompanyDetailPage(
-                                            companyId: company.id,
-                                            companyName: company.name,
-                                            category: company.industry,
-                                            logoAsset: company.logo ?? 'assets/logo_lutech.png',
-                                            location: company.location,
-                                            employeeCount: company.employeeCount ?? 0,
-                                            website: company.website ?? '',
+                                    isFollowing: isSaved,
+                                    onFollowTap: () {
+                                      final currentUser = ref.read(currentUserProvider);
+                                      if (currentUser == null) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text('Vui lòng đăng nhập để lưu công ty'),
+                                            backgroundColor: Colors.orange,
                                           ),
-                                        ),
+                                        );
+                                        return;
+                                      }
+                                      
+                                      if (isSaved) {
+                                        // Unsave company
+                                        ref.read(savedCompaniesNotifierProvider.notifier).unsaveCompany(
+                                          currentUser.userId,
+                                          company.id,
+                                        );
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text('Đã bỏ theo dõi công ty'),
+                                            duration: Duration(seconds: 2),
+                                            backgroundColor: Color(0xFF6B7280),
+                                          ),
+                                        );
+                                      } else {
+                                        // Save company
+                                        ref.read(savedCompaniesNotifierProvider.notifier).saveCompany(
+                                          currentUser.userId,
+                                          company.id,
+                                        );
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text('Đã theo dõi công ty'),
+                                            duration: Duration(seconds: 2),
+                                            backgroundColor: Color(0xFF10B981),
+                                          ),
+                                        );
+                                      }
+                                    },
+                                    onTap: () {
+                                      context.pushNamed(
+                                        'companyDetail',
+                                        pathParameters: {'companyId': company.id.toString()},
+                                        extra: {
+                                          'companyName': company.name,
+                                          'category': company.industry,
+                                          'logoAsset': company.logo ?? 'assets/logo_lutech.png',
+                                          'location': company.location,
+                                          'employeeCount': company.employeeCount ?? 0,
+                                          'website': company.website ?? '',
+                                          'description': company.description,
+                                        },
                                       );
                                     },
                                   );
@@ -559,7 +628,11 @@ class _HomePageState extends ConsumerState<HomePage> {
                               location: job.location,
                               workLocation: job.workLocation ?? 'TP. Huế & 2 nơi khác',
                               workingTime: job.jobType ?? 'Full Time',
-                              workSalary: job.salaryRange ?? '40 - 80 triệu /tháng',
+                              workSalary: SalaryFormatter.formatSalaryWithPeriod(
+                                salaryMin: job.salaryMin,
+                                salaryMax: job.salaryMax,
+                                salaryType: job.salaryType,
+                              ),
                               logoCompany: 'assets/logo_lutech.png',
                               isSaved: isSaved,
                               onBookmarkTap: () {
@@ -572,22 +645,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                             ),
                           ),
                         );
-                      })
-                    else
-                      InkWell(
-                        onTap: () {
-                          context.pushNamed("jobDetails");
-                        },
-                        child: CardItemJob(
-                          titleJob: 'Flutter Developer',
-                          conpanyJob: 'Lutech Digital',
-                          location: 'Toà nhà 18 Lê Lợi',
-                          workLocation: 'TP. Huế & 2 nơi khác',
-                          workingTime: 'Full Time',
-                          workSalary: '40 - 80 triệu /tháng',
-                          logoCompany: 'assets/logo_lutech.png',
-                        ),
-                      ),
+                      }),
+                    // Removed hardcoded sample job - using API data only
                     const SizedBox(height: AppDimensions.space),
                     TitleCategoryHeader(
                       onPressed: () {
@@ -603,7 +662,20 @@ class _HomePageState extends ConsumerState<HomePage> {
                       titleCategoryHeader: AppStrings.latestJobs,
                     ),
                     const SizedBox(height: AppDimensions.space),
-                    JobCategory(categories: categories),
+                    JobCategory(
+                      categories: categories,
+                      selectedCategoryId: _selectedCategoryId,
+                      onCategorySelected: (categoryId) {
+                        setState(() {
+                          _selectedCategoryId = categoryId;
+                        });
+                        if (categoryId == null) {
+                          ref.read(jobProvider.notifier).getAllJobs();
+                        } else {
+                          ref.read(jobProvider.notifier).getJobsByCategory(categoryId);
+                        }
+                      },
+                    ),
                     const SizedBox(height: AppDimensions.space),
                   ],
                 ),

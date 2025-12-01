@@ -22,6 +22,7 @@ class ApiConstants {
   static const String jobSeekerSavedJobsEndpoint = '/job-seekers/saved-jobs';
   static const String applicationsEndpoint = '/applications';
   static const String savedJobsEndpoint = '/job-seekers/saved-jobs';
+  static const String savedCompaniesEndpoint = '/job-seekers/saved-companies';
   
   // Application endpoints
   static const String applyJobEndpoint = '/applications';
