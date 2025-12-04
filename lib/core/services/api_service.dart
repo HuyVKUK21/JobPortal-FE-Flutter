@@ -1170,9 +1170,11 @@ class ApiService {
   }
 
   /// Get my applications
-  Future<ApiResponse<List<ApplicationResponse>>> getMyApplications(int seekerId) async {
+  Future<ApiResponse<List<ApplicationResponse>>> getMyApplications(int seekerId, {String? status}) async {
     try {
-      final url = '${ApiConstants.baseUrl}${ApiConstants.myApplicationsEndpoint}';
+      // Build URL with optional status query parameter
+      final queryParam = status != null ? '?status=$status' : '';
+      final url = '${ApiConstants.baseUrl}${ApiConstants.myApplicationsEndpoint}$queryParam';
       if (kDebugMode) print('🚀 My Applications API: $url');
       
       final response = await http.get(

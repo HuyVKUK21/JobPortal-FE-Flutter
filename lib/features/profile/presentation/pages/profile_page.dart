@@ -132,12 +132,7 @@ class ProfilePage extends ConsumerWidget {
                 icon: Icons.person_outline,
                 title: 'Thông tin cá nhân',
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ProfileEditPage(),
-                    ),
-                  );
+                  context.pushNamed('personalInformation');
                 },
               ),
               _buildMenuItem(

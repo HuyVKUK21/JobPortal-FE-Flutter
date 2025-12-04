@@ -85,6 +85,8 @@ class _ApplicationDetailState extends ConsumerState<ApplicationDetail> {
         return const Color(0xFF26C281);
       case 'rejected':
         return const Color(0xFFFF6B6B);
+      case 'review':
+      case 'reviewed':
       case 'reviewing':
         return const Color(0xFFFFA726);
       default:
@@ -95,7 +97,10 @@ class _ApplicationDetailState extends ConsumerState<ApplicationDetail> {
   String _getStatusText(String status) {
     switch (status.toLowerCase()) {
       case 'sent':
+      case 'pending':
         return 'Đơn đã gửi';
+      case 'review':
+      case 'reviewed':
       case 'reviewing':
         return 'Đang xem xét';
       case 'accepted':
@@ -114,7 +119,12 @@ class _ApplicationDetailState extends ConsumerState<ApplicationDetail> {
     final displayLocation = widget.location ?? 'California, United States';
     final displaySalary = widget.salary ?? '\$9,000 - \$15,000/month';
     final displayPostedTime = widget.postedTime ?? '2 days ago';
-    final displayStatus = widget.applicationStatus ?? 'reviewing';
+    // Normalize status to lowercase for consistent comparison
+    final displayStatus = (widget.applicationStatus ?? 'reviewing').toLowerCase();
+    
+    // Debug: Print status for timeline debugging
+    print('🎯 Application Detail Status: "$displayStatus" (from: "${widget.applicationStatus}")');
+    print('🎯 Salary: "$displaySalary"');
     
     return Scaffold(
       backgroundColor: Colors.white,
@@ -229,15 +239,19 @@ class _ApplicationDetailState extends ConsumerState<ApplicationDetail> {
                     _buildStage(
                       title: 'Đơn đã gửi',
                       isCompleted: true,
-                      isActive: displayStatus == 'sent',
+                      isActive: displayStatus == 'sent' || displayStatus == 'pending',
                       showLine: true,
                     ),
                     _buildStage(
                       title: 'Đang xem xét',
-                      isCompleted: displayStatus == 'reviewing' || 
+                      isCompleted: displayStatus == 'review' ||
+                                   displayStatus == 'reviewed' ||
+                                   displayStatus == 'reviewing' || 
                                    displayStatus == 'accepted' || 
                                    displayStatus == 'rejected',
-                      isActive: displayStatus == 'reviewing',
+                      isActive: displayStatus == 'review' ||
+                               displayStatus == 'reviewed' ||
+                               displayStatus == 'reviewing',
                       showLine: true,
                     ),
                     _buildStage(
@@ -295,78 +309,79 @@ class _ApplicationDetailState extends ConsumerState<ApplicationDetail> {
               ),
             ),
             
-            // Withdraw Button
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, -4),
-                  ),
-                ],
-              ),
-              child: SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Show confirmation dialog
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('Rút đơn ứng tuyển'),
-                        content: const Text(
-                          'Bạn có chắc chắn muốn rút đơn ứng tuyển này không?',
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text('Hủy'),
-                          ),
-                          TextButton(
-                            onPressed: _isWithdrawing ? null : () {
-                              Navigator.pop(context); // Close dialog
-                              _handleWithdrawApplication();
-                            },
-                            child: _isWithdrawing
-                                ? const SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
-                                    ),
-                                  )
-                                : const Text(
-                                    'Rút đơn',
-                                    style: TextStyle(color: Colors.red),
-                                  ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF4285F4),
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+            // Withdraw Button - Only show for Pending status
+            if (displayStatus == 'pending')
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, -4),
                     ),
-                  ),
-                  child: const Text(
-                    'Rút đơn',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                  ],
+                ),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      // Show confirmation dialog
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Rút đơn ứng tuyển'),
+                          content: const Text(
+                            'Bạn có chắc chắn muốn rút đơn ứng tuyển này không?',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('Hủy'),
+                            ),
+                            TextButton(
+                              onPressed: _isWithdrawing ? null : () {
+                                Navigator.pop(context); // Close dialog
+                                _handleWithdrawApplication();
+                              },
+                              child: _isWithdrawing
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
+                                      ),
+                                    )
+                                  : const Text(
+                                      'Rút đơn',
+                                      style: TextStyle(color: Colors.red),
+                                    ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFF6B6B),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Rút đơn',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
           ],
         ),
       ),

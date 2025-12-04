@@ -72,17 +72,23 @@ class AppColors {
   static const Color companyBlue = Color(0xFF3B82F6);
   
   // Application Status Badge - Background Colors
-  static const Color statusSentBg = Color(0xFFDBEAFE);
+  static const Color statusPendingBg = Color(0xFFFEF3C7);
+  static const Color statusReviewedBg = Color(0xFFDDEEFF);
+  static const Color statusInterviewBg = Color(0xFFCCE5FF);
   static const Color statusAcceptedBg = Color(0xFFD1FAE5);
   static const Color statusRejectedBg = Color(0xFFFEE2E2);
-  static const Color statusPendingBg = Color(0xFFFEF3C7);
+  static const Color statusCancelledBg = Color(0xFFE2E3E5);
+  static const Color statusSentBg = Color(0xFFDBEAFE);
   static const Color statusDefaultBg = Color(0xFFF3F4F6);
   
   // Application Status Badge - Text Colors
-  static const Color statusSentText = Color(0xFF1E40AF);
+  static const Color statusPendingText = Color(0xFFD97706);
+  static const Color statusReviewedText = Color(0xFF1E40AF);
+  static const Color statusInterviewText = Color(0xFF0369A1);
   static const Color statusAcceptedText = Color(0xFF047857);
   static const Color statusRejectedText = Color(0xFFDC2626);
-  static const Color statusPendingText = Color(0xFFD97706);
+  static const Color statusCancelledText = Color(0xFF6B7280);
+  static const Color statusSentText = Color(0xFF1E40AF);
   static const Color statusDefaultText = Color(0xFF6B7280);
   
   // Notification Colors

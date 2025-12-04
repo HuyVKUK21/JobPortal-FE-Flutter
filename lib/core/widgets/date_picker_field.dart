@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_1/core/constants/app_colors.dart';
 import 'package:intl/intl.dart';
 
-/// Reusable date picker field widget
 class DatePickerField extends StatelessWidget {
   final String label;
-  final String hint;
+  final String? hint;
   final DateTime? selectedDate;
   final Function(DateTime) onDateSelected;
   final DateTime? firstDate;
@@ -15,38 +14,13 @@ class DatePickerField extends StatelessWidget {
   const DatePickerField({
     super.key,
     required this.label,
-    required this.hint,
-    required this.selectedDate,
+    this.hint,
+    this.selectedDate,
     required this.onDateSelected,
     this.firstDate,
     this.lastDate,
     this.icon,
   });
-
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: selectedDate ?? DateTime.now(),
-      firstDate: firstDate ?? DateTime(1950),
-      lastDate: lastDate ?? DateTime(2100),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: AppColors.primary,
-              onPrimary: Colors.white,
-              onSurface: AppColors.textPrimary,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-
-    if (picked != null) {
-      onDateSelected(picked);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,10 +37,29 @@ class DatePickerField extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         InkWell(
-          onTap: () => _selectDate(context),
-          borderRadius: BorderRadius.circular(8),
+          onTap: () async {
+            final DateTime? picked = await showDatePicker(
+              context: context,
+              initialDate: selectedDate ?? DateTime.now(),
+              firstDate: firstDate ?? DateTime(1900),
+              lastDate: lastDate ?? DateTime.now(),
+              builder: (context, child) {
+                return Theme(
+                  data: Theme.of(context).copyWith(
+                    colorScheme: const ColorScheme.light(
+                      primary: AppColors.primary,
+                    ),
+                  ),
+                  child: child!,
+                );
+              },
+            );
+            if (picked != null) {
+              onDateSelected(picked);
+            }
+          },
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
             decoration: BoxDecoration(
               border: Border.all(color: Colors.grey[300]!),
               borderRadius: BorderRadius.circular(8),
@@ -74,29 +67,24 @@ class DatePickerField extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Icon(
-                  icon ?? Icons.calendar_today,
-                  size: 20,
-                  color: AppColors.textSecondary,
-                ),
-                const SizedBox(width: 12),
+                if (icon != null) ...[
+                  Icon(icon, size: 20, color: AppColors.textSecondary),
+                  const SizedBox(width: 12),
+                ],
                 Expanded(
                   child: Text(
                     selectedDate != null
                         ? DateFormat('dd/MM/yyyy').format(selectedDate!)
-                        : hint,
+                        : hint ?? 'Chọn ngày',
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: 14,
                       color: selectedDate != null
                           ? AppColors.textPrimary
-                          : AppColors.textSecondary,
+                          : Colors.grey[400],
                     ),
                   ),
                 ),
-                Icon(
-                  Icons.arrow_drop_down,
-                  color: AppColors.textSecondary,
-                ),
+                Icon(Icons.calendar_today, size: 18, color: Colors.grey[600]),
               ],
             ),
           ),

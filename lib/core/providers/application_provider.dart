@@ -82,13 +82,15 @@ class ApplicationNotifier extends StateNotifier<ApplicationState> {
     }
   }
 
-  Future<void> getMyApplications(int seekerId) async {
+  Future<void> getMyApplications(int seekerId, {String? status}) async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final response = await _apiService.getMyApplications(seekerId);
+      print('🔎 Provider: Getting applications with status = $status');
+      final response = await _apiService.getMyApplications(seekerId, status: status);
 
       if (response.isSuccess && response.data != null) {
+        print('✅ Provider: Received ${response.data!.length} applications');
         state = state.copyWith(
           applications: response.data!,
           isLoading: false,

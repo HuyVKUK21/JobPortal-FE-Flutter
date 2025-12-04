@@ -11,6 +11,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
 import 'package:flutter_application_1/core/constants/lottie_assets.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_application_1/core/utils/salary_formatter.dart';
 
 class ApplicationsPage extends ConsumerStatefulWidget {
   const ApplicationsPage({super.key});
@@ -22,6 +23,7 @@ class ApplicationsPage extends ConsumerStatefulWidget {
 class _ApplicationsPageState extends ConsumerState<ApplicationsPage> {
   String _searchQuery = '';
   String _sortBy = 'Mới nhất';
+  String? _selectedStatus; // null = All, or 'Pending', 'Review', 'Accepted', 'Rejected'
 
   @override
   void initState() {
@@ -31,7 +33,7 @@ class _ApplicationsPageState extends ConsumerState<ApplicationsPage> {
       final currentUser = ref.read(currentUserProvider);
       if (currentUser != null) {
         ref.read(applicationProvider.notifier).getMyApplications(
-            currentUser.userId);
+            currentUser.userId, status: _selectedStatus);
       }
     });
   }
@@ -53,6 +55,8 @@ class _ApplicationsPageState extends ConsumerState<ApplicationsPage> {
         return 'Đơn ứng tuyển của bạn đã được chấp nhận';
       case 'rejected':
         return 'Đơn ứng tuyển của bạn đã bị từ chối';
+      case 'review':
+      case 'reviewed':
       case 'reviewing':
       case 'in_review':
         return 'Đơn ứng tuyển của bạn đang được xem xét';
@@ -109,6 +113,54 @@ class _ApplicationsPageState extends ConsumerState<ApplicationsPage> {
     }
 
     return filtered;
+  }
+
+  Widget _buildFilterChip(String label, String? status, IconData icon, [Color? color]) {
+    final isSelected = _selectedStatus == status;
+    final chipColor = color ?? AppColors.primary;
+    
+    return FilterChip(
+      label: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: isSelected ? Colors.white : chipColor),
+          const SizedBox(width: 6),
+          Text(label),
+        ],
+      ),
+      selected: isSelected,
+      onSelected: (selected) {
+        setState(() {
+          _selectedStatus = status;
+        });
+        // Debug logging
+        print('🔍 Filter selected: $status');
+        
+        // Refresh data with new filter
+        final currentUser = ref.read(currentUserProvider);
+        if (currentUser != null) {
+          print('📞 Calling API with status filter: $_selectedStatus');
+          ref.read(applicationProvider.notifier).getMyApplications(
+              currentUser.userId, status: _selectedStatus);
+        }
+      },
+      selectedColor: chipColor,
+      backgroundColor: chipColor.withOpacity(0.1),
+      labelStyle: TextStyle(
+        color: isSelected ? Colors.white : chipColor,
+        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+        fontSize: 13,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(
+          color: isSelected ? chipColor : chipColor.withOpacity(0.3),
+          width: 1.5,
+        ),
+      ),
+      showCheckmark: false,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    );
   }
 
   void _showSortOptions() {
@@ -269,6 +321,25 @@ class _ApplicationsPageState extends ConsumerState<ApplicationsPage> {
             ),
             const SizedBox(height: 16),
 
+            // Status Filter Chips
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _buildFilterChip('Tất cả', null, Icons.apps),
+                  const SizedBox(width: 8),
+                  _buildFilterChip('Chờ duyệt', 'Pending', Icons.schedule, const Color(0xFFFFA726)),
+                  const SizedBox(width: 8),
+                  _buildFilterChip('Xem xét', 'Review', Icons.visibility, const Color(0xFF4285F4)),
+                  const SizedBox(width: 8),
+                  _buildFilterChip('Chấp nhận', 'Accepted', Icons.check_circle, const Color(0xFF26C281)),
+                  const SizedBox(width: 8),
+                  _buildFilterChip('Từ chối', 'Rejected', Icons.cancel, const Color(0xFFFF6B6B)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
             // Results count
             if (_searchQuery.isNotEmpty && !isLoading)
               Padding(
@@ -398,6 +469,29 @@ class _ApplicationsPageState extends ConsumerState<ApplicationsPage> {
         final location = app.company?.location ?? app.job?.location ?? 'N/A';
         final status = app.status ?? 'pending';
         final appliedAt = app.appliedAt;
+        
+        // Format salary using SalaryFormatter with structured fields
+        final salaryDisplay = app.job != null
+            ? SalaryFormatter.formatSalaryWithPeriod(
+                salaryMin: app.job!.salaryMin,
+                salaryMax: app.job!.salaryMax,
+                salaryType: app.job!.salaryType,
+              )
+            : 'Thỏa thuận';
+        
+        // Debug: Print actual status from backend
+        print('📊 Application Status from Backend: "$status" (type: ${status.runtimeType})');
+        
+        // Debug: Print salary data
+        print('💰 Salary Debug:');
+        print('   - Has job object: ${app.job != null}');
+        if (app.job != null) {
+          print('   - salaryMin: ${app.job!.salaryMin}');
+          print('   - salaryMax: ${app.job!.salaryMax}');
+          print('   - salaryType: ${app.job!.salaryType}');
+          print('   - salaryRange (deprecated): ${app.job!.salaryRange}');
+        }
+        print('   - Formatted display: "$salaryDisplay"');
 
         return ItemApplicationNotification(
           title: jobTitle,
@@ -416,7 +510,7 @@ class _ApplicationsPageState extends ConsumerState<ApplicationsPage> {
                       companyName: companyName,
                       companyLogo: 'assets/logo_lutech.png',
                       location: location,
-                      salary: app.job?.salaryRange ?? 'Thỏa thuận',
+                      salary: salaryDisplay,
                       applicationStatus: status,
                     ),
               ),

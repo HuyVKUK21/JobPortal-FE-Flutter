@@ -83,11 +83,14 @@ class AppStrings {
   static const String companyInfo = 'Chi tiết về công ty';
 
   // Applications
-  static const String applicationSent = 'Application Sent';
-  static const String applicationAccepted = 'Application Accepted';
-  static const String applicationRejected = 'Application Rejected';
-  static const String applicationPending = 'Application Pending';
-  static const String unknownStatus = 'Unknown Status';
+  static const String applicationSent = 'Đã gửi';
+  static const String applicationPending = 'Chờ xét duyệt';
+  static const String applicationReviewed = 'Đã xem xét';
+  static const String applicationInterviewScheduled = 'Lịch phỏng vấn';
+  static const String applicationAccepted = 'Đã chấp nhận';
+  static const String applicationRejected = 'Đã từ chối';
+  static const String applicationCancelled = 'Đã hủy';
+  static const String unknownStatus = 'Không rõ';
 
   // Notifications
   static const String generalNotifications = 'Chung';
