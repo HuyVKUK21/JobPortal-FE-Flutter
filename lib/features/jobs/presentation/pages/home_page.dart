@@ -162,30 +162,10 @@ class _HomePageState extends ConsumerState<HomePage> {
             ),
             const SizedBox(height: AppDimensions.space),
             EnhancedSearchBox(
-              filterCount: _currentFilter.activeFilterCount,
-              onFilterTap: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (context) => JobFilterBottomSheet(
-                    initialFilter: _currentFilter,
-                    onApply: (filter) {
-                      setState(() {
-                        _currentFilter = filter;
-                      });
-                      // Apply filter
-                      ref.read(jobProvider.notifier).filterJobs(
-                        jobType: filter.jobType,
-                        workLocation: filter.workLocation,
-                        location: filter.location,
-                        categoryId: filter.categoryId,
-                        skillId: filter.skillId,
-                      );
-                    },
-                  ),
-                );
+              onTap: () {
+                context.pushNamed('searchJobs');
               },
+              showFilter: false, // Hide filter icon
             ),
             const SizedBox(height: AppDimensions.space),
             Expanded(

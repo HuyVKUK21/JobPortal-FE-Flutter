@@ -3,8 +3,8 @@ import 'package:flutter/foundation.dart';
 
 class NetworkConfig {
   // Base URLs cho các platform khác nhau
-  static const String _localhost = 'http://192.168.1.31:8080/api';
-  static const String _androidEmulator = 'http://192.168.1.31:8080/api';
+  static const String _localhost = 'http://192.168.1.12:8080/api';
+  static const String _androidEmulator = 'http://192.168.1.12:8080/api';
   
   // TODO: Thay đổi IP này theo máy của bạn
   // Chạy 'ipconfig' trên Windows để tìm IPv4 Address
